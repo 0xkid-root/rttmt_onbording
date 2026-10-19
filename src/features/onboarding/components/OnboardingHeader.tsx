@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Activity, Save, FileClock, LogIn } from "lucide-react";
+import { Activity, Save, FileClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useOptionalOnboarding } from "../hooks/OnboardingContext";
@@ -68,13 +68,6 @@ export function OnboardingHeader() {
               <FileClock className="mr-1.5 size-3.5 text-muted-foreground" />
               <span className="hidden xs:inline">Check Status</span>
               <span className="xs:hidden">Status</span>
-            </Button>
-          </Link>
-
-          <Link href="/login">
-            <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground">
-              <LogIn className="mr-1.5 size-3.5" />
-              Sign In
             </Button>
           </Link>
         </div>
