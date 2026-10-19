@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { OnboardingWelcomeHero } from "@/features/onboarding/components/OnboardingWelcomeHero";
 
 export default function RootPage() {
-  redirect("/onboarding");
+  return <OnboardingWelcomeHero />;
 }
+
