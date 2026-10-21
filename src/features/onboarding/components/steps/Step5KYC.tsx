@@ -314,7 +314,7 @@ export function Step5KYC() {
           <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-xs text-muted-foreground">
               {kycFeedback ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                <span className="text-success font-medium flex items-center gap-1">
                   <CheckCircle2 className="size-3.5" />
                   {kycFeedback}
                 </span>
@@ -338,7 +338,7 @@ export function Step5KYC() {
                 </>
               ) : data.isKycVerified ? (
                 <>
-                  <ShieldCheck className="mr-2 size-3.5 text-emerald-600" />
+                  <ShieldCheck className="mr-2 size-3.5 text-success" />
                   Re-Verify Signatory
                 </>
               ) : (
