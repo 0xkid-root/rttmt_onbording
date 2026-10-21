@@ -233,3 +233,12 @@
 .animate-border-glow {
   animation: borderGlow 4s ease-in-out infinite;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-delayed,
+  .animate-pulse-glow,
+  .animate-border-glow {
+    animation: none !important;
+  }
+}
