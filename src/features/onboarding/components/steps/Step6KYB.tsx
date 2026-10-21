@@ -140,7 +140,7 @@ export function Step6KYB() {
             {!isProprietor && (
               <DocumentUploadBox
                 label="Board Resolution / Signatory Authority Letter"
-                description="Authorizing primary signatory to open RTMT merchant account"
+                description="Authorizing primary signatory to open RTTMT merchant account"
                 documentType="BOARD_RESOLUTION"
                 document={data.boardResolutionDoc}
                 onDocumentChange={(doc) =>
@@ -304,7 +304,7 @@ export function Step6KYB() {
         <div className="rounded-lg border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
           <div className="text-xs text-muted-foreground">
             {kybFeedback ? (
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+              <span className="text-success font-medium flex items-center gap-1.5">
                 <CheckCircle2 className="size-4" />
                 {kybFeedback}
               </span>
@@ -328,7 +328,7 @@ export function Step6KYB() {
               </>
             ) : data.isKybVerified ? (
               <>
-                <ShieldCheck className="mr-2 size-3.5 text-emerald-600" />
+                <ShieldCheck className="mr-2 size-3.5 text-success" />
                 Re-Validate Charters
               </>
             ) : (
