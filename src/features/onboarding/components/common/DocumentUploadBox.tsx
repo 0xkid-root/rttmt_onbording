@@ -140,7 +140,7 @@ export function DocumentUploadBox({
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{formatFileSize(document.size)}</span>
                 <span>•</span>
-                <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="flex items-center text-success font-medium">
                   <CheckCircle2 className="mr-1 size-3" />
                   Ready
                 </span>
