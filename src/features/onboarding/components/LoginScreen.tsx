@@ -27,7 +27,7 @@ export function LoginScreen() {
     setTimeout(() => {
       setIsLoading(false);
       toast.success("Login Successful (Simulated)", {
-        description: "Redirecting to RTMT merchant application...",
+        description: "Redirecting to RTTMT merchant application...",
       });
       router.push("/onboarding");
     }, 800);
@@ -51,7 +51,7 @@ export function LoginScreen() {
             <div className="text-left">
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold tracking-tight text-xl text-foreground font-mono">
-                  RTMT
+                  RTTMT
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                   Merchant Portal
@@ -149,7 +149,7 @@ export function LoginScreen() {
           </form>
 
           <div className="mt-6 pt-5 border-t border-border text-center text-xs text-muted-foreground">
-            Don’t have an RTMT merchant account?{" "}
+            Don’t have an RTTMT merchant account?{" "}
             <Link
               href="/onboarding"
               className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
@@ -161,7 +161,7 @@ export function LoginScreen() {
 
         <div className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1.5">
           <ShieldCheck className="size-3.5 text-primary" />
-          <span>Protected by RTMT 256-bit TLS Gateway</span>
+          <span>Protected by RTTMT 256-bit TLS Gateway</span>
         </div>
       </div>
     </div>
