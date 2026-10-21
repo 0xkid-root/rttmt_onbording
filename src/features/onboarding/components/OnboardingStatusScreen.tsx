@@ -70,7 +70,7 @@ export function OnboardingStatusScreen() {
 
           <Badge
             variant="outline"
-            className="self-start sm:self-auto border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400 font-semibold px-3 py-1 text-xs"
+            className="self-start sm:self-auto border-warning/30 bg-warning/10 text-warning font-semibold px-3 py-1 text-xs"
           >
             <Clock className="mr-1.5 size-3.5 animate-spin" />
             {application.applicationStatus === "UNDER_REVIEW"
@@ -97,7 +97,7 @@ export function OnboardingStatusScreen() {
                   onClick={handleCopyRef}
                   className="h-7 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  {copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+                  {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
                 </Button>
               </div>
             </div>
@@ -119,7 +119,7 @@ export function OnboardingStatusScreen() {
           <div className="rounded-md border border-border/80 bg-background/80 p-3 text-xs text-muted-foreground flex items-start gap-2">
             <AlertCircle className="size-4 text-primary shrink-0 mt-0.5" />
             <span>
-              <strong>Sandbox Demonstration Notice:</strong> This merchant application was processed in RTMT’s sandbox test environment. All automated checks, registry simulations, and KYC/KYB reviews are for evaluation only.
+              <strong>Sandbox Demonstration Notice:</strong> This merchant application was processed in RTTMT’s sandbox test environment. All automated checks, registry simulations, and KYC/KYB reviews are for evaluation only.
             </span>
           </div>
         </div>
@@ -143,11 +143,11 @@ export function OnboardingStatusScreen() {
                 <div key={idx} className="relative flex items-start gap-3">
                   {/* Dot / Icon */}
                   <div
-                    className={`absolute -left-[30px] sm:-left-[35px] flex size-6 items-center justify-center rounded-full text-white text-xs font-bold transition-all ${
+                    className={`absolute -left-[30px] sm:-left-[35px] flex size-6 items-center justify-center rounded-full text-xs font-bold transition-all ${
                       isCompleted
-                        ? "bg-emerald-500 ring-4 ring-emerald-500/10"
+                        ? "bg-success text-success-foreground ring-4 ring-success/15"
                         : isCurrent
-                        ? "bg-primary ring-4 ring-primary/20 animate-pulse"
+                        ? "bg-primary text-primary-foreground ring-4 ring-primary/20 animate-pulse"
                         : "bg-muted text-muted-foreground border border-border"
                     }`}
                   >
