@@ -2,7 +2,7 @@ import { ApplicationSubmissionRecord } from "../types";
 import { SAMPLE_DEMO_FORM_DATA } from "./initialData";
 
 export const SAMPLE_SUBMITTED_APPLICATION: ApplicationSubmissionRecord = {
-  referenceId: "RTMT-APP-2026-94812",
+  referenceId: "RTTMT-APP-2026-94812",
   applicationStatus: "UNDER_REVIEW",
   submittedAt: new Date().toISOString(),
   merchantName: "Aura Pay",
@@ -14,7 +14,7 @@ export const SAMPLE_SUBMITTED_APPLICATION: ApplicationSubmissionRecord = {
   timeline: [
     {
       event: "Application Submitted",
-      description: "Merchant onboarding application received and logged into RTMT intake pipeline.",
+      description: "Merchant onboarding application received and logged into RTTMT intake pipeline.",
       timestamp: "Today, 10:30 AM",
       status: "COMPLETED",
     },
@@ -38,7 +38,7 @@ export const SAMPLE_SUBMITTED_APPLICATION: ApplicationSubmissionRecord = {
     },
     {
       event: "Underwriting & Risk Scoring Analysis",
-      description: "RTMT ML risk-scoring model assessing transaction patterns, website compliance, and merchant risk profile.",
+      description: "RTTMT ML risk-scoring model assessing transaction patterns, website compliance, and merchant risk profile.",
       timestamp: "In Progress (Estimated SLA: ~2 hours)",
       status: "CURRENT",
     },
