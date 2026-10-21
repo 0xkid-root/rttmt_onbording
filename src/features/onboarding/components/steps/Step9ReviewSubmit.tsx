@@ -58,8 +58,8 @@ export function Step9ReviewSubmit() {
 
       {/* Incomplete steps warning banner if any */}
       {hasAnyIncompleteStep && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs space-y-2">
-          <div className="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-400">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-xs space-y-2">
+          <div className="flex items-center gap-2 font-semibold text-warning">
             <AlertTriangle className="size-4 shrink-0" />
             <span>Attention: The following sections require completion before submission:</span>
           </div>
@@ -73,7 +73,7 @@ export function Step9ReviewSubmit() {
                   variant="outline"
                   size="xs"
                   onClick={() => goToStep(s.num)}
-                  className="h-6 text-[11px] border-amber-500/40 text-amber-900 dark:text-amber-300 hover:bg-amber-500/20"
+                  className="h-6 text-[11px] border-warning/40 text-warning hover:bg-warning/20"
                 >
                   <Edit2 className="mr-1 size-3" />
                   Step {s.num}: {s.label}
@@ -410,7 +410,7 @@ export function Step9ReviewSubmit() {
                 htmlFor="declarationAccepted"
                 className="text-xs font-normal text-muted-foreground leading-relaxed cursor-pointer"
               >
-                I hereby declare that the particulars given above are true, correct, and complete to the best of my knowledge and belief. I agree to promptly notify RTMT of any material change in business activity, ownership structure, or banking details.
+                I hereby declare that the particulars given above are true, correct, and complete to the best of my knowledge and belief. I agree to promptly notify RTTMT of any material change in business activity, ownership structure, or banking details.
               </Label>
             </div>
             {stepErrors["declarationAccepted"] && (
