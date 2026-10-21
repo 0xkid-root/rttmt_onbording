@@ -369,7 +369,7 @@ export const step8ComplianceSchema = z.object({
     message: "FATCA / CRS tax residency confirmation is required",
   }),
   creditCheckConsent: z.boolean().refine((val) => val === true, {
-    message: "Consent for RTMT automated transaction monitoring & risk evaluation is required",
+    message: "Consent for RTTMT automated transaction monitoring & risk evaluation is required",
   }),
 });
 
