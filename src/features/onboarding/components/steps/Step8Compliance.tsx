@@ -162,7 +162,7 @@ export function Step8Compliance() {
                     htmlFor="restrictedBusinessDeclaration"
                     className="text-xs font-medium text-foreground cursor-pointer flex items-center gap-1.5"
                   >
-                    <ShieldAlert className="size-3.5 text-amber-600" />
+                    <ShieldAlert className="size-3.5 text-warning" />
                     Prohibited & Restricted Merchant Activity Declaration <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -239,7 +239,7 @@ export function Step8Compliance() {
               )}
             </div>
 
-            {/* RTMT Monitoring Consent */}
+            {/* RTTMT Monitoring Consent */}
             <div className="rounded-lg border border-border p-3.5 bg-muted/20 space-y-1.5">
               <div className="flex items-start gap-3">
                 <Checkbox
@@ -259,7 +259,7 @@ export function Step8Compliance() {
                     Consent for Real-Time Transaction Monitoring & Threat Intelligence <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    I authorize RTMT to perform continuous automated threat intelligence, suspicious velocity scanning, and commercial registry checks for risk evaluation and AML prevention.
+                    I authorize RTTMT to perform continuous automated threat intelligence, suspicious velocity scanning, and commercial registry checks for risk evaluation and AML prevention.
                   </p>
                 </div>
               </div>
