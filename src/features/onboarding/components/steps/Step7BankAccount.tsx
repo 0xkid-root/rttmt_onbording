@@ -309,7 +309,7 @@ export function Step7BankAccount() {
                 </>
               ) : data.isBankVerified ? (
                 <>
-                  <CheckCircle2 className="mr-2 size-3.5 text-emerald-600" />
+                  <CheckCircle2 className="mr-2 size-3.5 text-success" />
                   Re-Verify Account
                 </>
               ) : (
@@ -323,8 +323,8 @@ export function Step7BankAccount() {
 
           {/* Verification Result Card */}
           {data.isBankVerified && data.bankVerificationDetails && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs space-y-2">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold">
+            <div className="rounded-lg border border-success/30 bg-success/10 p-4 text-xs space-y-2">
+              <div className="flex items-center gap-2 text-success font-semibold">
                 <CheckCircle2 className="size-4" />
                 <span>Simulated Penny-Drop Match Confirmed (NPCI Sandbox)</span>
               </div>
@@ -345,7 +345,7 @@ export function Step7BankAccount() {
                   <span className="block text-[10px] uppercase font-semibold text-foreground">
                     Name Match
                   </span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span className="text-success font-medium">
                     100% Exact Match
                   </span>
                 </div>
