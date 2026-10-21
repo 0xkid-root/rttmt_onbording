@@ -68,7 +68,7 @@ export async function simulateKycVerification(
   return {
     verified: true,
     score: 98.4,
-    provider: "RTMT Identity Engine (Simulated)",
+    provider: "RTTMT Identity Engine (Simulated)",
     notes: `Simulated OCR & NSDL PAN match passed for PAN ${pan.slice(0, 5)}*****. Doc ID (ends in ${docTail}) verified.`,
   };
 }
