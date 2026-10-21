@@ -44,7 +44,7 @@ export function OnboardingMobileNav() {
                 isCurrent
                   ? "bg-primary text-primary-foreground border-primary"
                   : isCompleted
-                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                  ? "bg-success/10 text-success border-success/30"
                   : "bg-muted text-muted-foreground border-border"
               }`}
             >
