@@ -56,7 +56,7 @@ export function OnboardingSidebar() {
                   isCurrent
                     ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
                     : isCompleted
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-success text-success-foreground"
                     : "border border-border bg-muted/50 text-muted-foreground"
                 }`}
               >
