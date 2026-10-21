@@ -4,13 +4,10 @@ import Link from "next/link";
 import { 
   ShieldCheck, 
   ArrowRight, 
-  Zap, 
-  Lock, 
   Building2, 
   Clock, 
   CheckCircle2, 
   ChevronRight,
-  Sparkles,
   Activity,
   FileClock
 } from "lucide-react";
@@ -21,42 +18,46 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 export function OnboardingWelcomeHero() {
   return (
     <div className="relative min-h-screen w-full bg-background text-foreground flex flex-col justify-between overflow-x-hidden selection:bg-primary/20 selection:text-primary transition-colors duration-200">
-      {/* Background Subtle Grid & Ambient Glow */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)] pointer-events-none" />
-      <div className="absolute -top-32 left-1/4 -z-10 h-96 w-96 rounded-full bg-primary/5 blur-3xl animate-pulse-glow pointer-events-none" />
-      <div className="absolute top-1/3 -right-20 -z-10 h-96 w-96 rounded-full bg-primary/5 blur-3xl animate-pulse-glow pointer-events-none" />
+      {/* Background Subtle Grid */}
+      <div 
+        className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:32px_32px] opacity-35 [mask-image:radial-gradient(ellipse_70%_50%_at_50%_25%,#000_60%,transparent_100%)] pointer-events-none" 
+        aria-hidden="true"
+      />
 
-      {/* Top Navigation */}
-      <header className="relative z-10 w-full border-b border-border bg-background/80 backdrop-blur-md px-6 py-3.5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-              <Activity className="size-5" />
+      {/* Top Navigation Header */}
+      <header className="relative z-10 w-full border-b border-border bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-2xs group-hover:bg-primary/90 transition-colors">
+              <Activity className="size-5" aria-hidden="true" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-foreground text-base font-mono">RTTMT</span>
+                <span className="font-extrabold tracking-tight text-foreground text-base font-mono">RTTMT</span>
                 <span className="rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                   MERCHANT ONBOARDING
                 </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">Real-Time Transaction Threat Gateway</p>
+              <p className="text-[11px] text-muted-foreground hidden sm:block">
+                Real-Time Transaction Monitoring & Threat Intelligence Platform
+              </p>
             </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs text-success font-medium">
-              <span className="relative flex size-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                <span className="relative inline-flex rounded-full size-2 bg-success" />
-              </span>
-              <span>Gateway Live v2.4</span>
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-primary" />
+              <span>Merchant Onboarding Portal</span>
             </div>
 
             <Link href="/onboarding/status">
-              <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-muted text-xs h-8">
-                <FileClock className="mr-1.5 size-3.5 text-muted-foreground" />
-                Check Status
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-border text-foreground hover:bg-muted text-xs h-8 px-3"
+              >
+                <FileClock className="mr-1.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+                <span>Check Application Status</span>
               </Button>
             </Link>
 
@@ -65,194 +66,211 @@ export function OnboardingWelcomeHero() {
         </div>
       </header>
 
-      {/* Main Content Area: Two Animated Cards */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-6 sm:py-10">
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-6xl">
-          {/* Section Subhead */}
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3.5 py-1 text-xs font-medium text-muted-foreground backdrop-blur-xs mb-3">
-              <Sparkles className="size-3.5 text-primary" />
-              <span>Official Merchant Onboarding Gateway</span>
+          {/* Hero Header */}
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3.5 py-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3.5">
+              <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
+              <span>SECURE MERCHANT ONBOARDING</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">
-              Launch Your <span className="underline decoration-primary/30 decoration-wavy decoration-2 underline-offset-8">RTTMT Merchant Account</span>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground max-w-3xl mx-auto leading-tight">
+              Apply for an RTTMT Merchant Account
             </h1>
-            <p className="mt-3 text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              No existing credentials needed. Complete your business verification, configure settlement rails, and obtain instant sandbox access in 9 streamlined steps.
+            <p className="mt-3.5 text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Get started with RTTMT by providing your business information, verifying your contact details, and submitting the required documents for review.
             </p>
           </div>
 
-          {/* Side-by-Side Animated Cards Grid */}
+          {/* Side-by-Side Enterprise Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
             
-            {/* Card 1: Features & Information (Left Side Animated Card) */}
-            <div className="lg:col-span-6 rounded-2xl border border-border bg-card text-card-foreground p-5 sm:p-7 flex flex-col justify-between shadow-xs hover:border-foreground/20 transition-all duration-300 animate-float-slow">
+            {/* Card 1: Features & Information (Left Side) */}
+            <div className="lg:col-span-6 rounded-xl border border-border bg-card text-card-foreground p-6 sm:p-7 flex flex-col justify-between shadow-xs transition-colors">
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-border">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <div className="rounded-lg bg-primary/10 p-2 text-primary border border-primary/20">
-                      <ShieldCheck className="size-5" />
+                      <Activity className="size-5" aria-hidden="true" />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-foreground">Enterprise Threat Architecture</h2>
-                      <p className="text-xs text-muted-foreground">Zero-latency security & instant clearing</p>
+                      <h2 className="text-base font-semibold text-foreground">Transaction Risk Intelligence</h2>
+                      <p className="text-xs text-muted-foreground">Built to support safer digital transactions</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="border-border bg-muted text-foreground text-[11px] font-mono">
-                    RTTMT PROTOCOL
+                  <Badge variant="outline" className="border-border bg-muted/60 text-muted-foreground text-[11px] font-mono">
+                    CAPABILITIES
                   </Badge>
                 </div>
 
                 {/* Feature Rows */}
                 <div className="mt-5 space-y-3.5">
-                  <div className="flex items-start gap-3.5 rounded-xl border border-border bg-muted/30 p-3.5 transition-colors hover:bg-muted/60">
-                    <div className="mt-0.5 rounded-md bg-info/10 p-1.5 text-info">
-                      <Zap className="size-4" />
+                  <div className="flex items-start gap-3.5 rounded-lg border border-border bg-muted/20 p-3.5 transition-colors hover:bg-muted/40">
+                    <div className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary shrink-0">
+                      <Activity className="size-4" aria-hidden="true" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-foreground">Real-Time Threat Filtering</h3>
+                      <h3 className="text-sm font-semibold text-foreground">Transaction Monitoring</h3>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                        Sub-10ms anomaly analysis, velocity monitoring, and automated chargeback neutralization.
+                        Identify potentially suspicious transaction patterns and support risk-based investigation.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 rounded-xl border border-border bg-muted/30 p-3.5 transition-colors hover:bg-muted/60">
-                    <div className="mt-0.5 rounded-md bg-primary/10 p-1.5 text-primary">
-                      <Building2 className="size-4" />
+                  <div className="flex items-start gap-3.5 rounded-lg border border-border bg-muted/20 p-3.5 transition-colors hover:bg-muted/40">
+                    <div className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary shrink-0">
+                      <ShieldCheck className="size-4" aria-hidden="true" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-foreground">Automated KYB & Registry Verification</h3>
+                      <h3 className="text-sm font-semibold text-foreground">Business Verification</h3>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                        Instant corporate cross-referencing against national registries with automated OCR document parsing.
+                        Provide business registration information and supporting KYC/KYB documents during onboarding.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 rounded-xl border border-border bg-muted/30 p-3.5 transition-colors hover:bg-muted/60">
-                    <div className="mt-0.5 rounded-md bg-success/10 p-1.5 text-success">
-                      <Lock className="size-4" />
+                  <div className="flex items-start gap-3.5 rounded-lg border border-border bg-muted/20 p-3.5 transition-colors hover:bg-muted/40">
+                    <div className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary shrink-0">
+                      <Building2 className="size-4" aria-hidden="true" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-foreground">Bank-Grade Settlement Rails</h3>
+                      <h3 className="text-sm font-semibold text-foreground">Settlement Bank Details</h3>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                        Direct-to-bank settlement integrations with T+0/T+1 payout flexibility and compliance audits.
+                        Submit the bank account information required for the applicable merchant settlement workflow.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Telemetry Ticker */}
-              <div className="mt-6 pt-5 border-t border-border grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
-                  <div className="text-lg font-bold text-foreground tracking-tight font-mono">99.99%</div>
-                  <div className="text-[11px] text-muted-foreground font-medium">Gateway Uptime</div>
+              {/* Capability Indicators */}
+              <div className="mt-6 pt-5 border-t border-border">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">
+                  Core Platform Focus
                 </div>
-                <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
-                  <div className="text-lg font-bold text-success tracking-tight font-mono">&lt; 4 mins</div>
-                  <div className="text-[11px] text-muted-foreground font-medium">Avg Verification</div>
-                </div>
-                <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
-                  <div className="text-lg font-bold text-foreground tracking-tight font-mono">Level 1</div>
-                  <div className="text-[11px] text-muted-foreground font-medium">PCI-DSS Security</div>
+                <div className="grid grid-cols-3 gap-2.5 text-center">
+                  <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
+                    <div className="text-xs font-semibold text-foreground">Risk Monitoring</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">Pattern Detection</div>
+                  </div>
+                  <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
+                    <div className="text-xs font-semibold text-foreground">KYC & KYB Workflow</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">Entity Verification</div>
+                  </div>
+                  <div className="rounded-lg bg-muted/40 p-2.5 border border-border">
+                    <div className="text-xs font-semibold text-foreground">Settlement Details</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">Payout Routing</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Card 2: Start Your Onboarding (Right Side Animated Card) */}
-            <div className="lg:col-span-6 rounded-2xl border-2 border-border bg-card text-card-foreground p-5 sm:p-7 flex flex-col justify-between shadow-xs hover:border-foreground/30 transition-all duration-300 animate-float-delayed relative overflow-hidden">
+            {/* Card 2: Start Your Onboarding Application (Right Side) */}
+            <div className="lg:col-span-6 rounded-xl border border-border bg-card text-card-foreground p-6 sm:p-7 flex flex-col justify-between shadow-xs transition-colors relative">
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-border">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-                    <Sparkles className="size-3" />
-                    New Merchant Application
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-semibold text-primary uppercase tracking-wider">
+                    NEW MERCHANT APPLICATION
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="size-3.5 text-muted-foreground" />
-                    <span>~5 - 7 mins</span>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+                    <Clock className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                    <span>About 5–10 minutes</span>
                   </div>
                 </div>
 
                 <div className="mt-5">
                   <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                    Start Your Onboarding
+                    Start Your Merchant Application
                   </h2>
                   <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    Set up your merchant identity, verify business ownership, and activate sandbox access in 9 streamlined steps.
+                    Complete your contact details, provide your business information, upload the required documents, and review your application before submission.
                   </p>
                 </div>
 
-                {/* 3-Stage Progress Blueprint Preview */}
-                <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4 space-y-3">
+                {/* 3-Stage Connected Onboarding Preview */}
+                <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 space-y-3.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                    <span>Onboarding Journey</span>
-                    <span className="text-foreground font-mono font-medium">9 Steps</span>
+                    <span>Application Stages</span>
+                    <span className="text-foreground font-mono font-medium text-xs">9 Steps Total</span>
                   </div>
 
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between text-xs text-foreground">
-                      <div className="flex items-center gap-2">
-                        <div className="flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">1</div>
-                        <span className="font-medium">Account & Business Profile</span>
+                  <div className="space-y-3 text-xs">
+                    {/* Stage 01 */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold shrink-0 mt-0.5">
+                        01
                       </div>
-                      <span className="text-[11px] text-success flex items-center gap-1 font-mono font-medium">
-                        <CheckCircle2 className="size-3" /> Ready
-                      </span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-foreground">Contact & Business Details</div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                          Verify email and mobile number, then enter business profile information.
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-foreground">
-                      <div className="flex items-center gap-2">
-                        <div className="flex size-5 items-center justify-center rounded-full bg-muted border border-border text-foreground text-[10px] font-bold">2</div>
-                        <span className="font-medium">KYC & Corporate KYB Clearance</span>
+                    {/* Stage 02 */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex size-6 items-center justify-center rounded-md bg-muted border border-border text-foreground text-xs font-bold shrink-0 mt-0.5">
+                        02
                       </div>
-                      <span className="text-[11px] text-muted-foreground font-mono">OCR Match</span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-foreground">KYC, KYB & Bank Details</div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                          Provide applicable identity & company info, add registered address, and submit settlement bank details.
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-foreground">
-                      <div className="flex items-center gap-2">
-                        <div className="flex size-5 items-center justify-center rounded-full bg-muted border border-border text-foreground text-[10px] font-bold">3</div>
-                        <span className="font-medium">Settlement Rails & Final Review</span>
+                    {/* Stage 03 */}
+                    <div className="flex items-start gap-3">
+                      <div className="flex size-6 items-center justify-center rounded-md bg-muted border border-border text-foreground text-xs font-bold shrink-0 mt-0.5">
+                        03
                       </div>
-                      <span className="text-[11px] text-muted-foreground font-mono">Instant Key</span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-foreground">Review & Submit</div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                          Review all provided details, submit application, and track progress on the status timeline.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Highlight badges */}
-                <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-muted-foreground">
-                    <CheckCircle2 className="size-3.5 text-success" />
+                {/* Supporting capability badges */}
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+                    <CheckCircle2 className="size-3.5 text-primary" aria-hidden="true" />
                     Auto-save progress
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-muted-foreground">
-                    <CheckCircle2 className="size-3.5 text-success" />
-                    No credit card needed
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+                    <CheckCircle2 className="size-3.5 text-primary" aria-hidden="true" />
+                    Resume application
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-muted-foreground">
-                    <CheckCircle2 className="size-3.5 text-success" />
-                    Sandbox simulation ready
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
+                    <CheckCircle2 className="size-3.5 text-primary" aria-hidden="true" />
+                    Simulated verification workflow
                   </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-3 pt-2">
                 <Link href="/onboarding" className="block w-full">
-                  <Button className="w-full h-11 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center gap-2 group/btn">
+                  <Button className="w-full h-11 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-2xs">
                     <span>Start Merchant Onboarding</span>
-                    <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-1" />
+                    <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
                 </Link>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs text-muted-foreground">Already started an application?</span>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <span className="text-muted-foreground">Already started an application?</span>
                   <Link 
                     href="/onboarding/status"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline underline-offset-4"
+                    className="inline-flex items-center gap-1 font-semibold text-foreground hover:underline underline-offset-4"
                   >
-                    <span>Check status & resume</span>
-                    <ChevronRight className="size-3" />
+                    <span>Check application status</span>
+                    <ChevronRight className="size-3" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
@@ -262,17 +280,13 @@ export function OnboardingWelcomeHero() {
         </div>
       </main>
 
-      {/* Footer Assurance */}
-      <footer className="relative z-10 w-full border-t border-border bg-background/80 py-4 px-6 text-center text-xs text-muted-foreground">
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          <span className="flex items-center gap-1.5">
-            <Lock className="size-3.5 text-muted-foreground" />
-            Protected by RTTMT 256-bit TLS Gateway
-          </span>
-          <span>•</span>
-          <span>PCI-DSS Level 1 Compliant</span>
-          <span>•</span>
-          <span>Automated KYB & KYC Verification Engine</span>
+      {/* Footer */}
+      <footer className="relative z-10 w-full border-t border-border bg-background/90 py-4 px-6 text-xs text-muted-foreground">
+        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+          <span className="font-semibold text-foreground font-mono">RTTMT Merchant Onboarding</span>
+          <p className="text-muted-foreground text-[11px] sm:text-xs">
+            Submit your business information securely and track your application status.
+          </p>
         </div>
       </footer>
     </div>
