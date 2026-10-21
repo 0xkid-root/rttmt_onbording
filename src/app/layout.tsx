@@ -10,9 +10,9 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "RTMT Merchant Onboarding — Real-Time Transaction Monitoring",
+  title: "RTTMT Merchant Onboarding — Real-Time Transaction Monitoring",
   description:
-    "Production-quality merchant onboarding gateway for RTMT (Real-Time Transaction Monitoring & Threat Intelligence Platform).",
+    "Production-quality merchant onboarding gateway for RTTMT (Real-Time Transaction Monitoring & Threat Intelligence Platform).",
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         {children}
         <Toaster richColors position="top-right" />
