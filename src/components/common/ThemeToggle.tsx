@@ -1,30 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const THEME_CHANGE_EVENT = "rttmt-theme-change";
+
+function subscribe(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+  };
+}
+
+function getSnapshot(): "light" | "dark" {
+  if (typeof window === "undefined") return "light";
+  const saved = localStorage.getItem("rttmt_theme") || localStorage.getItem("rtmt_theme");
+  return saved === "dark" ? "dark" : "light";
+}
+
+function getServerSnapshot(): "light" | "dark" {
+  return "light";
+}
+
 export function ThemeToggle({ className }: { className?: string }) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    setMounted(true);
-    const saved = (localStorage.getItem("rttmt_theme") || localStorage.getItem("rtmt_theme")) as "light" | "dark" | null;
-    if (saved === "dark") {
-      setTheme("dark");
+    if (theme === "dark") {
       document.documentElement.classList.add("dark");
       document.body.classList.add("dark");
     } else {
-      setTheme("light");
       document.documentElement.classList.remove("dark");
       document.body.classList.remove("dark");
     }
-  }, []);
+  }, [theme]);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
     localStorage.setItem("rttmt_theme", next);
     if (next === "dark") {
       document.documentElement.classList.add("dark");
@@ -33,21 +49,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       document.documentElement.classList.remove("dark");
       document.body.classList.remove("dark");
     }
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   };
-
-  if (!mounted) {
-    return (
-      <Button
-        id="rttmt-theme-toggle"
-        variant="ghost"
-        size="icon"
-        className={`size-8 text-muted-foreground hover:text-foreground ${className || ""}`}
-        aria-label="Toggle theme"
-      >
-        <Sun className="size-4" />
-      </Button>
-    );
-  }
 
   return (
     <Button
