@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Activity, Save, FileClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useOptionalOnboarding } from "../hooks/OnboardingContext";
 import { ONBOARDING_STEPS } from "../mocks/options";
 
@@ -26,7 +27,7 @@ export function OnboardingHeader() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold tracking-tight text-base text-foreground font-mono">
-                  RTMT
+                  RTTMT
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                   Onboarding
@@ -70,6 +71,8 @@ export function OnboardingHeader() {
               <span className="xs:hidden">Status</span>
             </Button>
           </Link>
+
+          <ThemeToggle />
         </div>
       </div>
     </header>
