@@ -69,7 +69,7 @@ export function Step1AccountVerification() {
           Account & Contact Verification
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create your primary RTMT merchant master credentials and verify your contact details.
+          Create your primary RTTMT merchant master credentials and verify your contact details.
         </p>
       </div>
 
@@ -298,26 +298,26 @@ export function Step1AccountVerification() {
                     className={`rounded-full transition-colors ${
                       passwordScore >= lvl
                         ? passwordScore <= 2
-                          ? "bg-amber-500"
+                          ? "bg-warning"
                           : passwordScore <= 4
-                          ? "bg-blue-500"
-                          : "bg-emerald-500"
+                          ? "bg-info"
+                          : "bg-success"
                         : "bg-muted"
                     }`}
                   />
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-1.5 text-[11px] text-muted-foreground pt-1">
-                <span className={data.password.length >= 8 ? "text-emerald-600 flex items-center" : ""}>
+                <span className={data.password.length >= 8 ? "text-success flex items-center font-medium" : ""}>
                   <Check className="size-3 mr-1 inline" /> At least 8 characters
                 </span>
-                <span className={/[A-Z]/.test(data.password) ? "text-emerald-600 flex items-center" : ""}>
+                <span className={/[A-Z]/.test(data.password) ? "text-success flex items-center font-medium" : ""}>
                   <Check className="size-3 mr-1 inline" /> 1 Uppercase letter
                 </span>
-                <span className={/[0-9]/.test(data.password) ? "text-emerald-600 flex items-center" : ""}>
+                <span className={/[0-9]/.test(data.password) ? "text-success flex items-center font-medium" : ""}>
                   <Check className="size-3 mr-1 inline" /> 1 Number
                 </span>
-                <span className={/[^A-Za-z0-9]/.test(data.password) ? "text-emerald-600 flex items-center" : ""}>
+                <span className={/[^A-Za-z0-9]/.test(data.password) ? "text-success flex items-center font-medium" : ""}>
                   <Check className="size-3 mr-1 inline" /> 1 Special character
                 </span>
               </div>
@@ -343,7 +343,7 @@ export function Step1AccountVerification() {
               >
                 I agree to the{" "}
                 <span className="font-semibold text-primary underline underline-offset-2">
-                  RTMT Merchant Agreement
+                  RTTMT Merchant Agreement
                 </span>
                 ,{" "}
                 <span className="font-semibold text-primary underline underline-offset-2">
@@ -353,7 +353,7 @@ export function Step1AccountVerification() {
                 <span className="font-semibold text-primary underline underline-offset-2">
                   Privacy Policy
                 </span>
-                . I acknowledge that RTMT operates automated transaction threat monitoring and AML compliance screening.
+                . I acknowledge that RTTMT operates automated transaction threat monitoring and AML compliance screening.
               </Label>
             </div>
           </div>
