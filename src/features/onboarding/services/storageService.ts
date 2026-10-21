@@ -1,8 +1,10 @@
 import { ApplicationSubmissionRecord, OnboardingFormData } from "../types";
 import { DEFAULT_ONBOARDING_FORM_DATA } from "../mocks/initialData";
 
-const DRAFT_STORAGE_KEY = "rtmt_onboarding_draft_v1";
-const SUBMISSION_STORAGE_KEY = "rtmt_onboarding_submission_v1";
+const DRAFT_STORAGE_KEY = "rttmt_onboarding_draft_v1";
+const LEGACY_DRAFT_STORAGE_KEY = "rtmt_onboarding_draft_v1";
+const SUBMISSION_STORAGE_KEY = "rttmt_onboarding_submission_v1";
+const LEGACY_SUBMISSION_STORAGE_KEY = "rtmt_onboarding_submission_v1";
 
 interface StoredDraftPayload {
   formData: OnboardingFormData;
@@ -49,7 +51,7 @@ export function loadDraftFromStorage(): {
   if (typeof window === "undefined") return null;
 
   try {
-    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY) || localStorage.getItem(LEGACY_DRAFT_STORAGE_KEY);
     if (!raw) return null;
 
     const parsed: StoredDraftPayload = JSON.parse(raw);
@@ -81,6 +83,7 @@ export function clearDraftFromStorage(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(DRAFT_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
   } catch (err) {
     console.warn("Failed to clear draft from localStorage:", err);
   }
@@ -94,7 +97,7 @@ export async function submitApplication(
 
   const timestamp = new Date().toISOString();
   const randomSuffix = Math.floor(10000 + Math.random() * 90000);
-  const referenceId = `RTMT-APP-${new Date().getFullYear()}-${randomSuffix}`;
+  const referenceId = `RTTMT-APP-${new Date().getFullYear()}-${randomSuffix}`;
 
   const submission: ApplicationSubmissionRecord = {
     referenceId,
@@ -151,7 +154,9 @@ export function getSubmittedApplication(): ApplicationSubmissionRecord | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const raw = localStorage.getItem(SUBMISSION_STORAGE_KEY);
+    const raw =
+      localStorage.getItem(SUBMISSION_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_SUBMISSION_STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (err) {
