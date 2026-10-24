@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { BUSINESS_CATEGORIES } from "../mocks/options";
+import { areRequiredKybDocsUploaded } from "../config/kybDocuments";
+import { validateAndNormalizeWebUrl } from "../utils/formatters";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -56,41 +59,58 @@ export const step1AccountSchema = z
   });
 
 // Step 2: Business Profile Schema
-export const step2BusinessProfileSchema = z.object({
-  brandName: z
-    .string()
-    .trim()
-    .min(2, "Brand or operating name must be at least 2 characters")
-    .max(100, "Brand name cannot exceed 100 characters"),
-  businessCategory: z.string().min(1, "Please select a business category"),
-  subCategory: z.string().min(1, "Please select an industry subcategory"),
-  websiteUrl: z
-    .string()
-    .trim()
-    .min(1, "Business website URL is required")
-    .url("Enter a valid URL (e.g., https://example.com)"),
-  mobileAppUrl: z
-    .string()
-    .trim()
-    .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, {
-      message: "Please enter a valid app store link or leave empty",
-    }),
-  businessDescription: z
-    .string()
-    .trim()
-    .min(20, "Please provide at least 20 characters describing your goods or services")
-    .max(1000, "Description cannot exceed 1000 characters"),
-  expectedMonthlyVolume: z
-    .string()
-    .min(1, "Please select your expected monthly volume tier"),
-  averageTransactionValue: z
-    .union([z.string(), z.number()])
-    .transform((val) => (typeof val === "string" ? parseFloat(val) : val))
-    .refine((val) => !isNaN(val) && val > 0, {
-      message: "Average transaction value must be a positive amount in INR",
-    }),
-});
+export const step2BusinessProfileSchema = z
+  .object({
+    brandName: z
+      .string()
+      .trim()
+      .min(2, "Brand or operating name must be at least 2 characters")
+      .max(100, "Brand name cannot exceed 100 characters"),
+    businessCategory: z.string().min(1, "Please select a business category"),
+    subCategory: z.string().min(1, "Please select an industry subcategory"),
+    websiteUrl: z
+      .string()
+      .trim()
+      .min(1, "Business website URL is required")
+      .url("Enter a valid URL (e.g., https://example.com)"),
+    mobileAppUrl: z
+      .string()
+      .trim()
+      .optional()
+      .or(z.literal(""))
+      .refine((val) => !val || z.string().url().safeParse(val).success, {
+        message: "Please enter a valid app store link or leave empty",
+      }),
+    businessDescription: z
+      .string()
+      .trim()
+      .min(20, "Please provide at least 20 characters describing your goods or services")
+      .max(1000, "Description cannot exceed 1000 characters"),
+    expectedMonthlyVolume: z
+      .string()
+      .min(1, "Please select your expected monthly volume tier"),
+    averageTransactionValue: z
+      .union([z.string(), z.number()])
+      .refine((val) => val !== "" && val !== undefined && val !== null, {
+        message: "Average transaction value is required",
+      })
+      .transform((val) => (typeof val === "string" ? parseFloat(val) : val))
+      .refine((val) => !isNaN(val) && Number.isFinite(val) && val >= 1, {
+        message: "Average transaction value must be at least ₹1",
+      }),
+  })
+  .refine(
+    (data) => {
+      if (!data.businessCategory || !data.subCategory) return true;
+      const foundCategory = BUSINESS_CATEGORIES.find((c) => c.category === data.businessCategory);
+      if (!foundCategory) return false;
+      return foundCategory.subcategories.includes(data.subCategory);
+    },
+    {
+      message: "Selected subcategory does not belong to the chosen business category",
+      path: ["subCategory"],
+    }
+  );
 
 // Step 3: Company Details Schema
 export const step3CompanyDetailsSchema = z
@@ -111,9 +131,19 @@ export const step3CompanyDetailsSchema = z
     incorporationDate: z
       .string()
       .min(1, "Date of incorporation/registration is required")
-      .refine((date) => !isNaN(Date.parse(date)) && new Date(date) <= new Date(), {
-        message: "Incorporation date cannot be in the future",
-      }),
+      .refine(
+        (dateStr) => {
+          if (!dateStr) return false;
+          const parsed = new Date(dateStr);
+          if (isNaN(parsed.getTime())) return false;
+          const today = new Date();
+          today.setHours(23, 59, 59, 999);
+          return parsed <= today;
+        },
+        {
+          message: "Incorporation date cannot be in the future",
+        }
+      ),
     panNumber: z
       .string()
       .trim()
@@ -124,37 +154,75 @@ export const step3CompanyDetailsSchema = z
     registrationNumber: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
-    // If corporate entity, CIN or LLPIN or Reg is required
-    if (
-      ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(data.entityType) &&
-      (!data.registrationNumber || data.registrationNumber.trim().length < 5)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["registrationNumber"],
-        message: "Corporate Identification Number (CIN) is required for company entities",
-      });
+    const isCorporate = ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(data.entityType);
+    const isLlp = data.entityType === "LLP";
+
+    // 1. Corporate / LLP registration number validation
+    if (isCorporate) {
+      if (!data.registrationNumber || data.registrationNumber.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["registrationNumber"],
+          message: "Corporate Identification Number (CIN) is required for company entities",
+        });
+      } else if (!/^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i.test(data.registrationNumber.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["registrationNumber"],
+          message: "Enter a valid 21-character CIN (e.g., U72900MH2021PTC358912)",
+        });
+      }
+    } else if (isLlp) {
+      if (!data.registrationNumber || data.registrationNumber.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["registrationNumber"],
+          message: "LLPIN is required for Limited Liability Partnerships",
+        });
+      }
     }
 
-    if (
-      data.entityType === "LLP" &&
-      (!data.registrationNumber || data.registrationNumber.trim().length < 5)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["registrationNumber"],
-        message: "LLPIN is required for Limited Liability Partnerships",
-      });
-    }
+    // 2. GSTIN validation: Required for corporate/LLP entities; optional for sole proprietors & trusts
+    const isGstinRequired = isCorporate || isLlp;
+    const gstinValue = (data.gstin || "").trim();
 
-    // GSTIN validation: required for companies/LLP, optional for Sole Prop if declaration checked
-    if (!data.hasNoGstDeclaration) {
-      if (!data.gstin || !GSTIN_REGEX.test(data.gstin)) {
+    if (isGstinRequired) {
+      if (!gstinValue) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["gstin"],
-          message:
-            "Enter a valid 15-character GSTIN (or check below if exempt by turnover)",
+          message: "GSTIN is required for registered corporate entities",
+        });
+      } else if (!GSTIN_REGEX.test(gstinValue)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["gstin"],
+          message: "Enter a valid 15-character GSTIN (e.g., 27AAACA7823K1Z5)",
+        });
+      }
+    } else if (gstinValue) {
+      if (!GSTIN_REGEX.test(gstinValue)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["gstin"],
+          message: "Enter a valid 15-character GSTIN (e.g., 27AAACA7823K1Z5)",
+        });
+      }
+    }
+
+    // 3. Embedded PAN in GSTIN check (characters 3-12 of GSTIN is PAN)
+    if (
+      gstinValue &&
+      GSTIN_REGEX.test(gstinValue) &&
+      data.panNumber &&
+      PAN_REGEX.test(data.panNumber)
+    ) {
+      const embeddedPan = gstinValue.substring(2, 12);
+      if (embeddedPan !== data.panNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["gstin"],
+          message: `GSTIN characters 3–12 (${embeddedPan}) must match entered PAN (${data.panNumber})`,
         });
       }
     }
@@ -162,14 +230,26 @@ export const step3CompanyDetailsSchema = z
 
 // Step 4: Business Address Schema
 const addressObjectSchema = z.object({
-  line1: z.string().trim().min(5, "Address Line 1 must be at least 5 characters"),
+  line1: z
+    .string()
+    .trim()
+    .min(1, "Address Line 1 is required")
+    .min(5, "Address Line 1 must be at least 5 characters"),
   line2: z.string().trim().optional(),
   landmark: z.string().trim().optional(),
-  city: z.string().trim().min(2, "City is required"),
-  state: z.string().min(1, "Please select a state"),
+  city: z
+    .string()
+    .trim()
+    .min(1, "City is required")
+    .min(2, "City must be at least 2 characters"),
+  state: z
+    .string()
+    .trim()
+    .min(1, "Please select a state"),
   postalCode: z
     .string()
     .trim()
+    .min(1, "PIN Code is required")
     .regex(PINCODE_REGEX, "Enter a valid 6-digit Indian PIN code"),
   country: z.string().default("India"),
 });
@@ -178,7 +258,7 @@ export const step4BusinessAddressSchema = z
   .object({
     registeredAddress: addressObjectSchema,
     isOperatingAddressSame: z.boolean(),
-    operatingAddress: addressObjectSchema.optional(),
+    operatingAddress: z.any().optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.isOperatingAddressSame) {
@@ -186,7 +266,7 @@ export const step4BusinessAddressSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["operatingAddress", "line1"],
-          message: "Operating address is required when different from registered address",
+          message: "Address Line 1 is required for operating location",
         });
         return;
       }
@@ -203,53 +283,194 @@ export const step4BusinessAddressSchema = z
   });
 
 // Step 5: KYC Schema
-export const step5KYCSchema = z.object({
-  signatoryName: z
-    .string()
-    .trim()
-    .min(3, "Authorized signatory's full legal name is required"),
-  designation: z.string().trim().min(2, "Designation / Role is required"),
-  dateOfBirth: z
-    .string()
-    .min(1, "Date of birth is required")
-    .refine((date) => {
-      const dob = new Date(date);
-      if (isNaN(dob.getTime())) return false;
-      const ageDiff = Date.now() - dob.getTime();
-      const ageDate = new Date(ageDiff);
-      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      return age >= 18;
-    }, "Signatory must be at least 18 years of age"),
-  personalPan: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(PAN_REGEX, "Enter a valid 10-character personal PAN"),
-  idDocumentType: z.enum(["AADHAAR", "PASSPORT", "VOTER_ID"]),
-  idDocumentNumber: z
-    .string()
-    .trim()
-    .min(4, "Document identity number is required"),
-  signatoryEmail: z.string().trim().email("Valid email address is required"),
-  signatoryPhone: z
-    .string()
-    .trim()
-    .regex(PHONE_REGEX, "Enter a valid 10-digit mobile number"),
-  identityProofDocument: uploadedDocumentSchema.optional(),
-  addressProofDocument: uploadedDocumentSchema.optional(),
-  isKycVerified: z.boolean().refine((val) => val === true, {
-    message: "Identity verification must be simulated and marked verified",
-  }),
-});
+export const step5KYCSchema = z
+  .object({
+    signatoryName: z
+      .string()
+      .trim()
+      .min(1, "Full legal name is required")
+      .min(3, "Full legal name must be at least 3 characters")
+      .max(100, "Full legal name cannot exceed 100 characters"),
+    designation: z
+      .string()
+      .trim()
+      .min(1, "Designation / Position in entity is required")
+      .min(2, "Designation must be at least 2 characters")
+      .max(100, "Designation cannot exceed 100 characters"),
+    dateOfBirth: z.string().optional(),
+    personalPan: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(PAN_REGEX, "Enter a valid 10-character personal PAN (e.g., BKNPR4821E)"),
+    isPanVerified: z.boolean().optional(),
+    panVerifiedName: z.string().optional(),
+    panVerificationStatus: z.enum(["NOT_STARTED", "PENDING", "VERIFIED", "FAILED"]).optional(),
+    idDocumentType: z.enum(["AADHAAR", "PAN", "PASSPORT", "VOTER_ID"]),
+    idDocumentNumber: z
+      .string()
+      .trim()
+      .min(1, "Document identity number is required"),
+    isIdVerified: z.boolean().optional(),
+    idVerificationStatus: z.enum(["NOT_STARTED", "PENDING", "VERIFIED", "FAILED"]).optional(),
+    signatoryEmail: z
+      .string()
+      .trim()
+      .min(1, "Signatory official email is required")
+      .email("Enter a valid official email address"),
+    signatoryPhone: z
+      .string()
+      .trim()
+      .regex(PHONE_REGEX, "Enter a valid 10-digit Indian mobile number"),
+    identityProofFiles: z
+      .object({
+        front: uploadedDocumentSchema.optional(),
+        back: uploadedDocumentSchema.optional(),
+      })
+      .optional(),
+    addressDocumentType: z.enum(["PASSPORT", "DRIVING_LICENSE", "UTILITY_BILL"]).optional(),
+    addressProofFiles: z
+      .object({
+        front: uploadedDocumentSchema.optional(),
+        back: uploadedDocumentSchema.optional(),
+      })
+      .optional(),
+    identityProofDocument: uploadedDocumentSchema.optional(),
+    addressProofDocument: uploadedDocumentSchema.optional(),
+    isKycVerified: z.boolean().refine((val) => val === true, {
+      message: "Please complete both PAN and Identity verification to proceed",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    // 0. Independent PAN and ID Verification Check
+    if (!data.isPanVerified) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["personalPan"],
+        message: "Please verify Personal PAN",
+      });
+    }
+    if (!data.isIdVerified) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["idDocumentNumber"],
+        message: "Please verify Aadhaar Number",
+      });
+    }
+
+    // 1. Aadhaar Number Format Validation
+    const docNum = (data.idDocumentNumber || "").trim();
+    if (data.idDocumentType === "AADHAAR") {
+      const cleanAadhaar = docNum.replace(/[\s-]/g, "");
+      if (!/^(?:[xX]{8}\d{4}|\d{12})$/.test(cleanAadhaar)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["idDocumentNumber"],
+          message: "Enter a valid 12-digit Aadhaar number or masked format (e.g. XXXX XXXX 9034)",
+        });
+      }
+    } else if (data.idDocumentType === "PAN") {
+      if (!PAN_REGEX.test(docNum.toUpperCase())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["idDocumentNumber"],
+          message: "Enter a valid 10-character PAN (e.g., BKNPR4821E)",
+        });
+      }
+    } else if (data.idDocumentType === "PASSPORT") {
+      const cleanPassport = docNum.toUpperCase();
+      if (!/^[A-Z][0-9]{7}$/.test(cleanPassport)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["idDocumentNumber"],
+          message: "Enter a valid Indian Passport number (1 letter followed by 7 digits, e.g. L8923412)",
+        });
+      }
+    } else if (data.idDocumentType === "VOTER_ID") {
+      const cleanVoterId = docNum.toUpperCase();
+      if (!/^[A-Z]{3}[0-9]{7}$/.test(cleanVoterId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["idDocumentNumber"],
+          message: "Enter a valid Voter ID (EPIC) number (3 letters followed by 7 digits, e.g. ABC1293841)",
+        });
+      }
+    }
+
+    // 2. Identity Document Uploads validation based on selected document type
+    const idFiles = data.identityProofFiles;
+    const hasSingleIdDoc = Boolean(data.identityProofDocument?.id);
+
+    if (data.idDocumentType === "AADHAAR") {
+      if (!idFiles?.front?.id && !hasSingleIdDoc) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_front"],
+          message: "Aadhaar Card Front side upload is required",
+        });
+      }
+      if (!idFiles?.back?.id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_back"],
+          message: "Aadhaar Card Back side upload is required",
+        });
+      }
+    } else if (data.idDocumentType === "VOTER_ID") {
+      if (!idFiles?.front?.id && !hasSingleIdDoc) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_front"],
+          message: "Voter ID Front side upload is required",
+        });
+      }
+      if (!idFiles?.back?.id) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_back"],
+          message: "Voter ID Back side upload is required",
+        });
+      }
+    } else if (data.idDocumentType === "PAN") {
+      if (!idFiles?.front?.id && !hasSingleIdDoc) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_front"],
+          message: "PAN Card image upload is required",
+        });
+      }
+    } else if (data.idDocumentType === "PASSPORT") {
+      if (!idFiles?.front?.id && !hasSingleIdDoc) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["identityProof_front"],
+          message: "Passport identification page upload is required",
+        });
+      }
+    }
+
+    // 3. Address Proof Document Uploads validation (Utility / Electricity Bill)
+    const addressFiles = data.addressProofFiles;
+    const hasSingleAddressDoc = Boolean(data.addressProofDocument?.id);
+
+    if (!addressFiles?.front?.id && !hasSingleAddressDoc) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["addressProof_front"],
+        message: "Electricity or utility bill document upload is required",
+      });
+    }
+  });
 
 // Step 6: KYB Schema
 export const beneficialOwnerSchema = z.object({
+  id: z.string().optional(),
   name: z.string().trim().min(2, "Beneficial owner full name is required"),
   pan: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(PAN_REGEX, "Enter valid 10-character PAN"),
+    .regex(PAN_REGEX, "Enter valid 10-character PAN (e.g., BKNPR4821E)"),
   percentageHolding: z
     .number()
     .min(1, "Holding percentage must be at least 1%")
@@ -267,40 +488,71 @@ export const step6KYBSchema = z
       "PARTNERSHIP",
       "TRUST_NGO",
     ]),
+    hasGstRegistration: z.boolean().optional(),
     businessRegistrationDoc: uploadedDocumentSchema.optional(),
     constitutionalDoc: uploadedDocumentSchema.optional(),
     boardResolutionDoc: uploadedDocumentSchema.optional(),
     companyPanDoc: uploadedDocumentSchema.optional(),
     gstCertificateDoc: uploadedDocumentSchema.optional(),
+    isGstExempt: z.boolean().optional(),
     beneficialOwners: z.array(beneficialOwnerSchema),
     hasNoUboDeclaration: z.boolean(),
     isKybVerified: z.boolean().refine((val) => val === true, {
       message: "Please complete simulated KYB document check before proceeding",
     }),
+    kybVerificationStatus: z
+      .enum(["NOT_STARTED", "PENDING", "VERIFIED", "FAILED"])
+      .optional(),
+    kybVerificationNotes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    // Check that at least one business registration document is uploaded
-    if (!data.businessRegistrationDoc) {
+    // 1. Validate required documents using centralized kybDocuments configuration
+    const docCheck = areRequiredKybDocsUploaded(
+      data,
+      Boolean(data.hasGstRegistration),
+      Boolean(data.isGstExempt)
+    );
+
+    for (let i = 0; i < docCheck.missingFields.length; i++) {
+      const missingField = docCheck.missingFields[i];
+      const missingLabel = docCheck.missingLabels[i] || "Statutory document";
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["businessRegistrationDoc"],
-        message: "Primary business registration / establishment document is required",
+        path: [missingField],
+        message: `${missingLabel} is required`,
       });
     }
 
-    // Beneficial ownership declaration check for corporate entities
-    if (
-      ["PRIVATE_LIMITED", "PUBLIC_LIMITED", "LLP", "PARTNERSHIP"].includes(
-        data.entityType
-      )
-    ) {
+    // 2. Beneficial ownership check (not applicable for Sole Proprietorship)
+    if (data.entityType !== "SOLE_PROPRIETORSHIP") {
       if (!data.hasNoUboDeclaration && data.beneficialOwners.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["hasNoUboDeclaration"],
-          message:
-            "Add at least one beneficial owner (holding >10%) or check the declaration",
+          message: "Add at least one beneficial owner or check the widely held declaration",
         });
+      }
+
+      if (data.hasNoUboDeclaration && data.beneficialOwners.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["hasNoUboDeclaration"],
+          message: "Beneficial owners list must be empty when widely held declaration is selected",
+        });
+      }
+
+      if (!data.hasNoUboDeclaration && data.beneficialOwners.length > 0) {
+        const totalHolding = data.beneficialOwners.reduce(
+          (sum, o) => sum + (o.percentageHolding || 0),
+          0
+        );
+        if (totalHolding > 100) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["beneficialOwners"],
+            message: `Total beneficial ownership cannot exceed 100% (currently ${totalHolding}%)`,
+          });
+        }
       }
     }
   });
@@ -323,10 +575,10 @@ export const step7BankAccountSchema = z
       .toUpperCase()
       .regex(IFSC_REGEX, "Enter a valid 11-character IFSC code (e.g., HDFC0000001)"),
     accountType: z.enum(["CURRENT", "SAVINGS"]),
-    bankName: z.string().min(1, "Bank name could not be resolved from IFSC"),
-    branchName: z.string().min(1, "Branch name is required"),
+    bankName: z.string().trim().min(1, "Bank name is required"),
+    branchName: z.string().trim().min(1, "Branch name is required"),
     isBankVerified: z.boolean().refine((val) => val === true, {
-      message: "Please perform mock penny-drop verification for this bank account",
+      message: "Please complete simulated bank account verification before proceeding",
     }),
   })
   .refine((data) => data.accountNumber === data.confirmAccountNumber, {
@@ -335,43 +587,110 @@ export const step7BankAccountSchema = z
   });
 
 // Step 8: Compliance & Declarations Schema
-export const step8ComplianceSchema = z.object({
-  refundPolicyUrl: z
-    .string()
-    .trim()
-    .min(1, "Refund and cancellation policy URL is required")
-    .url("Enter a valid URL"),
-  termsOfServiceUrl: z
-    .string()
-    .trim()
-    .min(1, "Customer Terms of Service URL is required")
-    .url("Enter a valid URL"),
-  privacyPolicyUrl: z
-    .string()
-    .trim()
-    .min(1, "Privacy policy URL is required")
-    .url("Enter a valid URL"),
-  grievanceEmail: z
-    .string()
-    .trim()
-    .email("Enter a valid grievance/support contact email"),
-  grievancePhone: z
-    .string()
-    .trim()
-    .min(8, "Enter a valid contact phone or helpline"),
-  restrictedBusinessDeclaration: z.boolean().refine((val) => val === true, {
-    message: "You must confirm non-involvement in restricted or prohibited merchant categories",
-  }),
-  pepDeclaration: z.boolean().refine((val) => val === true, {
-    message: "Please declare PEP (Politically Exposed Persons) compliance",
-  }),
-  fatcaConsent: z.boolean().refine((val) => val === true, {
-    message: "FATCA / CRS tax residency confirmation is required",
-  }),
-  creditCheckConsent: z.boolean().refine((val) => val === true, {
-    message: "Consent for RTTMT automated transaction monitoring & risk evaluation is required",
-  }),
-});
+export const step8ComplianceSchema = z
+  .object({
+    refundPolicyUrl: z
+      .string()
+      .trim()
+      .min(1, "Refund and cancellation policy URL is required")
+      .refine((val) => validateAndNormalizeWebUrl(val).isValid, {
+        message: "Enter a valid HTTP or HTTPS web address",
+      }),
+    termsOfServiceUrl: z
+      .string()
+      .trim()
+      .min(1, "Customer Terms of Service URL is required")
+      .refine((val) => validateAndNormalizeWebUrl(val).isValid, {
+        message: "Enter a valid HTTP or HTTPS web address",
+      }),
+    privacyPolicyUrl: z
+      .string()
+      .trim()
+      .min(1, "Privacy policy URL is required")
+      .refine((val) => validateAndNormalizeWebUrl(val).isValid, {
+        message: "Enter a valid HTTP or HTTPS web address",
+      }),
+    grievanceEmail: z
+      .string()
+      .trim()
+      .email("Enter a valid grievance/support contact email"),
+    grievancePhone: z
+      .string()
+      .trim()
+      .min(8, "Enter a valid contact phone or helpline"),
+    restrictedBusinessDeclaration: z.boolean().refine((val) => val === true, {
+      message: "You must confirm non-involvement in restricted or prohibited merchant categories",
+    }),
+    pepStatus: z.enum(["NO", "YES", "UNKNOWN"], {
+      message: "Please select your Politically Exposed Persons (PEP) status",
+    }),
+    pepDetails: z.string().trim().optional(),
+    taxResidency: z.enum(["INDIA_ONLY", "OTHER"], {
+      message: "Please specify your entity's tax residency status",
+    }),
+    taxResidencyCountry: z.string().trim().optional(),
+    foreignTaxIdNumber: z.string().trim().optional(),
+    fatcaCrsClassification: z.enum(["NON_REPORTABLE", "REPORTABLE_US", "REPORTABLE_OTHER", "EXEMPT"], {
+      message: "Please select a FATCA / CRS classification",
+    }),
+    fatcaCrsGiinOrTin: z.string().trim().optional(),
+    fatcaSelfCertificationConfirmed: z.boolean().refine((val) => val === true, {
+      message: "Please confirm the FATCA / CRS self-certification statement",
+    }),
+    transactionMonitoringConsent: z.boolean().refine((val) => val === true, {
+      message: "Consent for RTTMT automated transaction monitoring & risk evaluation is required",
+    }),
+    creditCheckConsent: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // 1. PEP conditional disclosure
+    if (data.pepStatus === "YES") {
+      if (!data.pepDetails || data.pepDetails.trim().length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["pepDetails"],
+          message: "Please disclose the PEP name, public/political role, and relationship to the entity (min 5 characters)",
+        });
+      }
+    } else if (data.pepStatus === "UNKNOWN") {
+      if (!data.pepDetails || data.pepDetails.trim().length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["pepDetails"],
+          message: "Please explain why PEP status is pending verification or undetermined (min 5 characters)",
+        });
+      }
+    }
+
+    // 2. Tax Residency conditional fields
+    if (data.taxResidency === "OTHER") {
+      if (!data.taxResidencyCountry || data.taxResidencyCountry.trim().length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["taxResidencyCountry"],
+          message: "Please specify the foreign country / jurisdiction of tax residence",
+        });
+      }
+      if (!data.foreignTaxIdNumber || data.foreignTaxIdNumber.trim().length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["foreignTaxIdNumber"],
+          message: "Please provide the foreign Tax Identification Number (TIN)",
+        });
+      }
+    }
+
+    // 3. FATCA/CRS reportable conditional fields
+    if (data.fatcaCrsClassification === "REPORTABLE_US" || data.fatcaCrsClassification === "REPORTABLE_OTHER") {
+      if (!data.fatcaCrsGiinOrTin || data.fatcaCrsGiinOrTin.trim().length < 4) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["fatcaCrsGiinOrTin"],
+          message: "Please provide the GIIN or Foreign TIN for FATCA / CRS reporting",
+        });
+      }
+    }
+  });
 
 // Step 9: Review & Submit Schema
 export const step9ReviewSchema = z.object({

@@ -70,7 +70,10 @@ export interface EntityTypeOption {
   value: BusinessEntityType;
   label: string;
   description: string;
-  cinLabel?: string;
+  cinLabel: string;
+  placeholder?: string;
+  helperText?: string;
+  isRequiredRegistration?: boolean;
   requiredKybDocs: string[];
 }
 
@@ -80,6 +83,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Private Limited Company (Pvt Ltd)",
     description: "Registered under Companies Act with MCA; 2 or more directors",
     cinLabel: "CIN (Corporate Identity Number)",
+    placeholder: "U72900MH2021PTC358912",
+    helperText: "21-character Corporate Identity Number issued by Registrar of Companies (ROC).",
+    isRequiredRegistration: true,
     requiredKybDocs: [
       "Certificate of Incorporation (COI)",
       "Memorandum & Articles of Association (MOA / AOA)",
@@ -92,6 +98,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Public Limited Company",
     description: "Publicly listed or unlisted corporation registered with MCA",
     cinLabel: "CIN (Corporate Identity Number)",
+    placeholder: "L72900MH2018PLC312456",
+    helperText: "21-character Corporate Identity Number issued by Registrar of Companies (ROC).",
+    isRequiredRegistration: true,
     requiredKybDocs: [
       "Certificate of Incorporation (COI)",
       "Commencement of Business Certificate",
@@ -104,6 +113,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Limited Liability Partnership (LLP)",
     description: "Partnership registered under LLP Act with limited liability",
     cinLabel: "LLPIN (LLP Identification Number)",
+    placeholder: "AAJ-8491",
+    helperText: "LLP Identification Number from Ministry of Corporate Affairs.",
+    isRequiredRegistration: true,
     requiredKybDocs: [
       "LLP Agreement (Registered)",
       "Certificate of Incorporation",
@@ -116,6 +128,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Sole Proprietorship",
     description: "Single individual owned business with registration / trade certificate",
     cinLabel: "Registration / License Number",
+    placeholder: "UDYAM-MH-01-0029341",
+    helperText: "State trade license, MSME Udyam, or local registration reference.",
+    isRequiredRegistration: false,
     requiredKybDocs: [
       "Shop & Establishment Certificate or Udyam MSME Registration",
       "GST Registration Certificate (if applicable)",
@@ -127,6 +142,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Partnership Firm",
     description: "Traditional partnership created via registered Partnership Deed",
     cinLabel: "RoF Registration Number",
+    placeholder: "MH-P-2023-9182",
+    helperText: "Registration certificate reference issued by Registrar of Firms.",
+    isRequiredRegistration: false,
     requiredKybDocs: [
       "Registered Partnership Deed",
       "Registration Certificate (Registrar of Firms)",
@@ -139,6 +157,9 @@ export const ENTITY_TYPE_OPTIONS: EntityTypeOption[] = [
     label: "Trust / Society / Section 8 NGO",
     description: "Non-profit or registered trust established for public benefit",
     cinLabel: "Trust / Society Reg. Number",
+    placeholder: "E-12345/MUMBAI",
+    helperText: "Registration number from Charity Commissioner / Registrar of Societies.",
+    isRequiredRegistration: false,
     requiredKybDocs: [
       "Trust Deed / Society Registration Certificate",
       "12A / 80G Registration (if applicable)",

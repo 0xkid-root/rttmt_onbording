@@ -41,7 +41,7 @@ export function createMockUploadedDoc(
     size: file.size,
     type: file.type,
     uploadedAt: new Date().toISOString(),
-    status: "VERIFIED",
+    status: "PENDING",
     documentType,
     fileUrl: URL.createObjectURL(file),
   };

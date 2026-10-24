@@ -1,4 +1,11 @@
-import { ApplicationSubmissionRecord, OnboardingFormData } from "../types";
+import {
+  ApplicationSubmissionRecord,
+  OnboardingFormData,
+  Step8ComplianceData,
+  PepStatus,
+  TaxResidencyStatus,
+  FatcaCrsClassification,
+} from "../types";
 import { DEFAULT_ONBOARDING_FORM_DATA } from "../mocks/initialData";
 
 const DRAFT_STORAGE_KEY = "rttmt_onboarding_draft_v1";
@@ -57,7 +64,43 @@ export function loadDraftFromStorage(): {
     const parsed: StoredDraftPayload = JSON.parse(raw);
     if (!parsed || !parsed.formData) return null;
 
-    // Merge with default data to guarantee all schema properties are present
+    // Merge with default data and safely migrate legacy step8 draft keys
+    const rawStep8 = (parsed.formData.step8 || {}) as unknown as Record<string, unknown>;
+    const migratedStep8: Step8ComplianceData = {
+      ...DEFAULT_ONBOARDING_FORM_DATA.step8,
+      ...(rawStep8 as unknown as Partial<Step8ComplianceData>),
+      transactionMonitoringConsent:
+        typeof rawStep8.transactionMonitoringConsent === "boolean"
+          ? (rawStep8.transactionMonitoringConsent as boolean)
+          : typeof rawStep8.creditCheckConsent === "boolean"
+          ? (rawStep8.creditCheckConsent as boolean)
+          : DEFAULT_ONBOARDING_FORM_DATA.step8.transactionMonitoringConsent,
+      pepStatus:
+        typeof rawStep8.pepStatus === "string" && rawStep8.pepStatus
+          ? (rawStep8.pepStatus as PepStatus)
+          : rawStep8.pepDeclaration === true
+          ? ("NO" as const)
+          : DEFAULT_ONBOARDING_FORM_DATA.step8.pepStatus,
+      fatcaSelfCertificationConfirmed:
+        typeof rawStep8.fatcaSelfCertificationConfirmed === "boolean"
+          ? (rawStep8.fatcaSelfCertificationConfirmed as boolean)
+          : typeof rawStep8.fatcaConsent === "boolean"
+          ? (rawStep8.fatcaConsent as boolean)
+          : DEFAULT_ONBOARDING_FORM_DATA.step8.fatcaSelfCertificationConfirmed,
+      taxResidency:
+        typeof rawStep8.taxResidency === "string" && rawStep8.taxResidency
+          ? (rawStep8.taxResidency as TaxResidencyStatus)
+          : rawStep8.fatcaConsent === true
+          ? ("INDIA_ONLY" as const)
+          : DEFAULT_ONBOARDING_FORM_DATA.step8.taxResidency,
+      fatcaCrsClassification:
+        typeof rawStep8.fatcaCrsClassification === "string" && rawStep8.fatcaCrsClassification
+          ? (rawStep8.fatcaCrsClassification as FatcaCrsClassification)
+          : rawStep8.fatcaConsent === true
+          ? ("NON_REPORTABLE" as const)
+          : DEFAULT_ONBOARDING_FORM_DATA.step8.fatcaCrsClassification,
+    };
+
     const merged: OnboardingFormData = {
       ...DEFAULT_ONBOARDING_FORM_DATA,
       ...parsed.formData,
@@ -67,6 +110,7 @@ export function loadDraftFromStorage(): {
         password: "",
         confirmPassword: "",
       },
+      step8: migratedStep8,
     };
 
     return {
@@ -112,26 +156,30 @@ export async function submitApplication(
     formData: sanitizeForStorage(formData),
     timeline: [
       {
+        id: "step-received",
         event: "Application Received & Logged",
-        description: "Merchant onboarding packet received and assigned reference ID.",
+        description: "Merchant onboarding packet received and assigned tracking reference ID.",
         timestamp: "Just now",
         status: "COMPLETED",
       },
       {
-        event: "Automated Registry & Fraud Screening",
-        description: "Checking MCA/ROC records, PAN status, and sanction watchlists.",
+        id: "step-validation",
+        event: "Format & Structure Validation (Simulated)",
+        description: "Simulated syntax verification, PAN format validation, and sanity checks.",
         timestamp: "In Progress",
         status: "CURRENT",
       },
       {
-        event: "Risk Underwriting & Document Audit",
-        description: "Review of compliance policies, website terms, and entity documents.",
-        timestamp: "Estimated: 2 hours",
+        id: "step-underwriting",
+        event: "Risk Underwriting & Document Review (Demo)",
+        description: "Simulated review of business profile, compliance declarations, and entity documents.",
+        timestamp: "Estimated: 1–2 business days",
         status: "PENDING",
       },
       {
+        id: "step-activation",
         event: "Settlement Account Activation & Live MID",
-        description: "Issuance of production API secret keys and merchant dashboard access.",
+        description: "Issuance of production API secret keys and merchant portal access upon approval.",
         timestamp: "Pending",
         status: "PENDING",
       },
@@ -158,7 +206,19 @@ export function getSubmittedApplication(): ApplicationSubmissionRecord | null {
       localStorage.getItem(SUBMISSION_STORAGE_KEY) ||
       localStorage.getItem(LEGACY_SUBMISSION_STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      typeof parsed.referenceId !== "string" ||
+      !parsed.referenceId.trim() ||
+      typeof parsed.submittedAt !== "string" ||
+      !parsed.formData ||
+      typeof parsed.formData !== "object"
+    ) {
+      return null;
+    }
+    return parsed as ApplicationSubmissionRecord;
   } catch (err) {
     console.warn("Failed to load submitted application:", err);
     return null;
