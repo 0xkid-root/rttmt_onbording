@@ -15,12 +15,13 @@ import {
 import { useOnboarding } from "../../hooks/OnboardingContext";
 import { INDIAN_STATES } from "../../mocks/options";
 import { formatPostalCode } from "../../utils/formatters";
+import { AddressDetails } from "../../types";
 
 export function Step4BusinessAddress() {
   const { formData, updateStepData, stepErrors } = useOnboarding();
   const data = formData.step4;
 
-  const handleRegisteredAddressChange = (field: string, value: string) => {
+  const handleRegisteredAddressChange = (field: keyof AddressDetails, value: string) => {
     updateStepData("step4", {
       registeredAddress: {
         ...data.registeredAddress,
@@ -29,7 +30,7 @@ export function Step4BusinessAddress() {
     });
   };
 
-  const handleOperatingAddressChange = (field: string, value: string) => {
+  const handleOperatingAddressChange = (field: keyof AddressDetails, value: string) => {
     const current = data.operatingAddress || {
       line1: "",
       line2: "",
@@ -48,6 +49,41 @@ export function Step4BusinessAddress() {
     });
   };
 
+  const handleSameAddressToggle = (checked: boolean) => {
+    if (checked) {
+      updateStepData("step4", {
+        isOperatingAddressSame: true,
+      });
+    } else {
+      // Check if user has already entered custom information in operating address
+      const hasCustomData = Boolean(
+        data.operatingAddress &&
+          (data.operatingAddress.line1?.trim() ||
+            data.operatingAddress.city?.trim() ||
+            data.operatingAddress.state?.trim() ||
+            data.operatingAddress.postalCode?.trim())
+      );
+
+      const nextOperating: AddressDetails =
+        hasCustomData && data.operatingAddress
+          ? data.operatingAddress
+          : {
+              line1: data.registeredAddress?.line1 || "",
+              line2: data.registeredAddress?.line2 || "",
+              landmark: data.registeredAddress?.landmark || "",
+              city: data.registeredAddress?.city || "",
+              state: data.registeredAddress?.state || "",
+              postalCode: data.registeredAddress?.postalCode || "",
+              country: data.registeredAddress?.country || "India",
+            };
+
+      updateStepData("step4", {
+        isOperatingAddressSame: false,
+        operatingAddress: nextOperating,
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -61,16 +97,13 @@ export function Step4BusinessAddress() {
 
       <div className="grid gap-6">
         {/* Registered Address */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Building className="size-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">
               Principal / Registered Office Address
             </h3>
           </div>
-          <p className="text-xs text-muted-foreground">
-            As listed on your GST registration, Certificate of Incorporation, or tax record.
-          </p>
 
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -82,9 +115,11 @@ export function Step4BusinessAddress() {
                 value={data.registeredAddress.line1}
                 onChange={(e) => handleRegisteredAddressChange("line1", e.target.value)}
                 placeholder="e.g. Unit 804, Tower B, Peninsula Business Park"
+                aria-invalid={Boolean(stepErrors["registeredAddress.line1"])}
+                aria-describedby={stepErrors["registeredAddress.line1"] ? "regLine1-error" : undefined}
               />
               {stepErrors["registeredAddress.line1"] && (
-                <p className="text-xs font-medium text-destructive">
+                <p id="regLine1-error" role="alert" className="text-xs font-medium text-destructive">
                   {stepErrors["registeredAddress.line1"]}
                 </p>
               )}
@@ -122,9 +157,11 @@ export function Step4BusinessAddress() {
                   value={data.registeredAddress.city}
                   onChange={(e) => handleRegisteredAddressChange("city", e.target.value)}
                   placeholder="e.g. Mumbai"
+                  aria-invalid={Boolean(stepErrors["registeredAddress.city"])}
+                  aria-describedby={stepErrors["registeredAddress.city"] ? "regCity-error" : undefined}
                 />
                 {stepErrors["registeredAddress.city"] && (
-                  <p className="text-xs font-medium text-destructive">
+                  <p id="regCity-error" role="alert" className="text-xs font-medium text-destructive">
                     {stepErrors["registeredAddress.city"]}
                   </p>
                 )}
@@ -138,7 +175,12 @@ export function Step4BusinessAddress() {
                   value={data.registeredAddress.state}
                   onValueChange={(val) => handleRegisteredAddressChange("state", val || "")}
                 >
-                  <SelectTrigger id="regState" className="w-full">
+                  <SelectTrigger
+                    id="regState"
+                    className="w-full"
+                    aria-invalid={Boolean(stepErrors["registeredAddress.state"])}
+                    aria-describedby={stepErrors["registeredAddress.state"] ? "regState-error" : undefined}
+                  >
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
@@ -150,7 +192,7 @@ export function Step4BusinessAddress() {
                   </SelectContent>
                 </Select>
                 {stepErrors["registeredAddress.state"] && (
-                  <p className="text-xs font-medium text-destructive">
+                  <p id="regState-error" role="alert" className="text-xs font-medium text-destructive">
                     {stepErrors["registeredAddress.state"]}
                   </p>
                 )}
@@ -163,14 +205,17 @@ export function Step4BusinessAddress() {
                 <Input
                   id="regPostalCode"
                   maxLength={6}
+                  inputMode="numeric"
                   value={data.registeredAddress.postalCode}
                   onChange={(e) =>
                     handleRegisteredAddressChange("postalCode", formatPostalCode(e.target.value))
                   }
                   placeholder="e.g. 400013"
+                  aria-invalid={Boolean(stepErrors["registeredAddress.postalCode"])}
+                  aria-describedby={stepErrors["registeredAddress.postalCode"] ? "regPostalCode-error" : undefined}
                 />
                 {stepErrors["registeredAddress.postalCode"] && (
-                  <p className="text-xs font-medium text-destructive">
+                  <p id="regPostalCode-error" role="alert" className="text-xs font-medium text-destructive">
                     {stepErrors["registeredAddress.postalCode"]}
                   </p>
                 )}
@@ -180,18 +225,12 @@ export function Step4BusinessAddress() {
         </div>
 
         {/* Operating Address Checkbox */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-4">
           <div className="flex items-center gap-3">
             <Checkbox
               id="isOperatingAddressSame"
               checked={data.isOperatingAddressSame}
-              onCheckedChange={(checked) =>
-                updateStepData("step4", {
-                  isOperatingAddressSame: checked === true,
-                  operatingAddress:
-                    checked === true ? undefined : data.operatingAddress || data.registeredAddress,
-                })
-              }
+              onCheckedChange={(checked) => handleSameAddressToggle(checked === true)}
             />
             <Label
               htmlFor="isOperatingAddressSame"
@@ -220,9 +259,11 @@ export function Step4BusinessAddress() {
                   value={data.operatingAddress?.line1 || ""}
                   onChange={(e) => handleOperatingAddressChange("line1", e.target.value)}
                   placeholder="Warehouse, fulfillment floor, or commercial shop address"
+                  aria-invalid={Boolean(stepErrors["operatingAddress.line1"])}
+                  aria-describedby={stepErrors["operatingAddress.line1"] ? "opLine1-error" : undefined}
                 />
                 {stepErrors["operatingAddress.line1"] && (
-                  <p className="text-xs font-medium text-destructive">
+                  <p id="opLine1-error" role="alert" className="text-xs font-medium text-destructive">
                     {stepErrors["operatingAddress.line1"]}
                   </p>
                 )}
@@ -260,9 +301,11 @@ export function Step4BusinessAddress() {
                     value={data.operatingAddress?.city || ""}
                     onChange={(e) => handleOperatingAddressChange("city", e.target.value)}
                     placeholder="City"
+                    aria-invalid={Boolean(stepErrors["operatingAddress.city"])}
+                    aria-describedby={stepErrors["operatingAddress.city"] ? "opCity-error" : undefined}
                   />
                   {stepErrors["operatingAddress.city"] && (
-                    <p className="text-xs font-medium text-destructive">
+                    <p id="opCity-error" role="alert" className="text-xs font-medium text-destructive">
                       {stepErrors["operatingAddress.city"]}
                     </p>
                   )}
@@ -276,7 +319,12 @@ export function Step4BusinessAddress() {
                     value={data.operatingAddress?.state || ""}
                     onValueChange={(val) => handleOperatingAddressChange("state", val || "")}
                   >
-                    <SelectTrigger id="opState" className="w-full">
+                    <SelectTrigger
+                      id="opState"
+                      className="w-full"
+                      aria-invalid={Boolean(stepErrors["operatingAddress.state"])}
+                      aria-describedby={stepErrors["operatingAddress.state"] ? "opState-error" : undefined}
+                    >
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
@@ -288,7 +336,7 @@ export function Step4BusinessAddress() {
                     </SelectContent>
                   </Select>
                   {stepErrors["operatingAddress.state"] && (
-                    <p className="text-xs font-medium text-destructive">
+                    <p id="opState-error" role="alert" className="text-xs font-medium text-destructive">
                       {stepErrors["operatingAddress.state"]}
                     </p>
                   )}
@@ -301,6 +349,7 @@ export function Step4BusinessAddress() {
                   <Input
                     id="opPostalCode"
                     maxLength={6}
+                    inputMode="numeric"
                     value={data.operatingAddress?.postalCode || ""}
                     onChange={(e) =>
                       handleOperatingAddressChange(
@@ -309,9 +358,11 @@ export function Step4BusinessAddress() {
                       )
                     }
                     placeholder="6-digit PIN code"
+                    aria-invalid={Boolean(stepErrors["operatingAddress.postalCode"])}
+                    aria-describedby={stepErrors["operatingAddress.postalCode"] ? "opPostalCode-error" : undefined}
                   />
                   {stepErrors["operatingAddress.postalCode"] && (
-                    <p className="text-xs font-medium text-destructive">
+                    <p id="opPostalCode-error" role="alert" className="text-xs font-medium text-destructive">
                       {stepErrors["operatingAddress.postalCode"]}
                     </p>
                   )}

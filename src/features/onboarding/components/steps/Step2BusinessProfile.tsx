@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Globe, Smartphone, IndianRupee, Layers, Briefcase, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,15 @@ export function Step2BusinessProfile() {
     return found ? found.subcategories : [];
   }, [data.businessCategory]);
 
+  // Ensure selected subcategory belongs to currently selected business category
+  useEffect(() => {
+    if (data.businessCategory && data.subCategory) {
+      if (availableSubcategories.length > 0 && !availableSubcategories.includes(data.subCategory)) {
+        updateStepData("step2", { subCategory: "" });
+      }
+    }
+  }, [data.businessCategory, data.subCategory, availableSubcategories, updateStepData]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -39,7 +48,7 @@ export function Step2BusinessProfile() {
 
       <div className="grid gap-6">
         {/* Brand Name & Categorization */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Briefcase className="size-4 text-primary" />
             Trading Identity & Categorization
@@ -53,13 +62,15 @@ export function Step2BusinessProfile() {
               id="brandName"
               value={data.brandName}
               onChange={(e) => updateStepData("step2", { brandName: e.target.value })}
-              placeholder="e.g. Aura Pay, SwiftCart, NexaCloud"
+              placeholder="e.g. RTTMT Pay, SwiftCart, NexaCloud"
+              aria-invalid={!!stepErrors["brandName"]}
+              aria-describedby={stepErrors["brandName"] ? "brandName-error" : undefined}
             />
-            <p className="text-xs text-muted-foreground">
-              The merchant name displayed to your end customers on payment pages and transaction SMS/statements.
-            </p>
+
             {stepErrors["brandName"] && (
-              <p className="text-xs font-medium text-destructive">{stepErrors["brandName"]}</p>
+              <p id="brandName-error" className="text-xs font-medium text-destructive" role="alert">
+                {stepErrors["brandName"]}
+              </p>
             )}
           </div>
 
@@ -78,7 +89,14 @@ export function Step2BusinessProfile() {
                   });
                 }}
               >
-                <SelectTrigger id="businessCategory" className="w-full">
+                <SelectTrigger
+                  id="businessCategory"
+                  className="w-full"
+                  aria-invalid={!!stepErrors["businessCategory"]}
+                  aria-describedby={
+                    stepErrors["businessCategory"] ? "businessCategory-error" : undefined
+                  }
+                >
                   <SelectValue placeholder="Select primary industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -90,7 +108,7 @@ export function Step2BusinessProfile() {
                 </SelectContent>
               </Select>
               {stepErrors["businessCategory"] && (
-                <p className="text-xs font-medium text-destructive">
+                <p id="businessCategory-error" className="text-xs font-medium text-destructive" role="alert">
                   {stepErrors["businessCategory"]}
                 </p>
               )}
@@ -106,7 +124,14 @@ export function Step2BusinessProfile() {
                 onValueChange={(val) => updateStepData("step2", { subCategory: val || "" })}
                 disabled={!data.businessCategory}
               >
-                <SelectTrigger id="subCategory" className="w-full">
+                <SelectTrigger
+                  id="subCategory"
+                  className="w-full"
+                  aria-invalid={!!stepErrors["subCategory"]}
+                  aria-describedby={
+                    stepErrors["subCategory"] ? "subCategory-error" : undefined
+                  }
+                >
                   <SelectValue
                     placeholder={
                       data.businessCategory
@@ -124,14 +149,16 @@ export function Step2BusinessProfile() {
                 </SelectContent>
               </Select>
               {stepErrors["subCategory"] && (
-                <p className="text-xs font-medium text-destructive">{stepErrors["subCategory"]}</p>
+                <p id="subCategory-error" className="text-xs font-medium text-destructive" role="alert">
+                  {stepErrors["subCategory"]}
+                </p>
               )}
             </div>
           </div>
         </div>
 
         {/* Digital Presence: Website & Mobile App */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Globe className="size-4 text-primary" />
             Digital Presence & Customer Touchpoints
@@ -143,7 +170,7 @@ export function Step2BusinessProfile() {
                 Website URL <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <Globe className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                <Globe className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="websiteUrl"
                   type="url"
@@ -151,20 +178,22 @@ export function Step2BusinessProfile() {
                   onChange={(e) => updateStepData("step2", { websiteUrl: e.target.value })}
                   placeholder="https://yourdomain.com"
                   className="pl-9"
+                  aria-invalid={!!stepErrors["websiteUrl"]}
+                  aria-describedby={stepErrors["websiteUrl"] ? "websiteUrl-error" : undefined}
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Your live e-commerce or customer checkout portal URL.
-              </p>
+
               {stepErrors["websiteUrl"] && (
-                <p className="text-xs font-medium text-destructive">{stepErrors["websiteUrl"]}</p>
+                <p id="websiteUrl-error" className="text-xs font-medium text-destructive" role="alert">
+                  {stepErrors["websiteUrl"]}
+                </p>
               )}
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="mobileAppUrl">Mobile App URL (Optional)</Label>
               <div className="relative">
-                <Smartphone className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                <Smartphone className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="mobileAppUrl"
                   type="url"
@@ -172,13 +201,13 @@ export function Step2BusinessProfile() {
                   onChange={(e) => updateStepData("step2", { mobileAppUrl: e.target.value })}
                   placeholder="https://play.google.com/store/apps/..."
                   className="pl-9"
+                  aria-invalid={!!stepErrors["mobileAppUrl"]}
+                  aria-describedby={stepErrors["mobileAppUrl"] ? "mobileAppUrl-error" : undefined}
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Google Play Store or Apple App Store listing link if applicable.
-              </p>
+
               {stepErrors["mobileAppUrl"] && (
-                <p className="text-xs font-medium text-destructive">
+                <p id="mobileAppUrl-error" className="text-xs font-medium text-destructive" role="alert">
                   {stepErrors["mobileAppUrl"]}
                 </p>
               )}
@@ -194,18 +223,32 @@ export function Step2BusinessProfile() {
             <Textarea
               id="businessDescription"
               rows={3}
+              maxLength={1000}
               value={data.businessDescription}
               onChange={(e) =>
-                updateStepData("step2", { businessDescription: e.target.value })
+                updateStepData("step2", { businessDescription: e.target.value.slice(0, 1000) })
               }
               placeholder="Describe the nature of products, software, or services sold, delivery timelines, pricing model, and customer fulfillment flow..."
+              aria-invalid={!!stepErrors["businessDescription"]}
+              aria-describedby={
+                stepErrors["businessDescription"]
+                  ? "businessDescription-error businessDescription-count"
+                  : "businessDescription-count"
+              }
             />
-            <div className="flex justify-between text-[11px] text-muted-foreground">
-              <span>Minimum 20 characters required for automated risk profiling</span>
+            <div
+              id="businessDescription-count"
+              className="flex justify-between text-[11px] text-muted-foreground"
+              aria-live="polite"
+            >
               <span>{data.businessDescription.length} / 1000</span>
             </div>
             {stepErrors["businessDescription"] && (
-              <p className="text-xs font-medium text-destructive">
+              <p
+                id="businessDescription-error"
+                className="text-xs font-medium text-destructive"
+                role="alert"
+              >
                 {stepErrors["businessDescription"]}
               </p>
             )}
@@ -213,7 +256,7 @@ export function Step2BusinessProfile() {
         </div>
 
         {/* Financial Metrics & Processing Projections */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 shadow-2xs space-y-4">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
             <Layers className="size-4 text-primary" />
             Transaction Velocity & Volume Forecast
@@ -231,7 +274,16 @@ export function Step2BusinessProfile() {
                   updateStepData("step2", { expectedMonthlyVolume: val || "" })
                 }
               >
-                <SelectTrigger id="expectedMonthlyVolume" className="w-full">
+                <SelectTrigger
+                  id="expectedMonthlyVolume"
+                  className="w-full"
+                  aria-invalid={!!stepErrors["expectedMonthlyVolume"]}
+                  aria-describedby={
+                    stepErrors["expectedMonthlyVolume"]
+                      ? "expectedMonthlyVolume-error"
+                      : undefined
+                  }
+                >
                   <SelectValue placeholder="Select anticipated monthly tier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -243,7 +295,11 @@ export function Step2BusinessProfile() {
                 </SelectContent>
               </Select>
               {stepErrors["expectedMonthlyVolume"] && (
-                <p className="text-xs font-medium text-destructive">
+                <p
+                  id="expectedMonthlyVolume-error"
+                  className="text-xs font-medium text-destructive"
+                  role="alert"
+                >
                   {stepErrors["expectedMonthlyVolume"]}
                 </p>
               )}
@@ -255,12 +311,12 @@ export function Step2BusinessProfile() {
                 Average Transaction Value (ATV in ₹) <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <IndianRupee className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                <IndianRupee className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
                 <Input
                   id="averageTransactionValue"
                   type="number"
                   min={1}
-                  step={10}
+                  step={1}
                   value={data.averageTransactionValue}
                   onChange={(e) =>
                     updateStepData("step2", {
@@ -269,13 +325,23 @@ export function Step2BusinessProfile() {
                   }
                   placeholder="e.g. 2500"
                   className="pl-9"
+                  aria-invalid={!!stepErrors["averageTransactionValue"]}
+                  aria-describedby={
+                    stepErrors["averageTransactionValue"]
+                      ? "averageTransactionValue-error averageTransactionValue-desc"
+                      : "averageTransactionValue-desc"
+                  }
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p id="averageTransactionValue-desc" className="text-[11px] text-muted-foreground">
                 Average ticket size per successful payment order.
               </p>
               {stepErrors["averageTransactionValue"] && (
-                <p className="text-xs font-medium text-destructive">
+                <p
+                  id="averageTransactionValue-error"
+                  className="text-xs font-medium text-destructive"
+                  role="alert"
+                >
                   {stepErrors["averageTransactionValue"]}
                 </p>
               )}

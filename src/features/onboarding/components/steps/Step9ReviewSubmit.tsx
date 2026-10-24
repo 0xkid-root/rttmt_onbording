@@ -85,7 +85,7 @@ export function Step9ReviewSubmit() {
 
       <div className="grid gap-6">
         {/* Section 1: Account & Credentials */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-2.5">
             <div className="flex items-center gap-2">
               <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -133,7 +133,7 @@ export function Step9ReviewSubmit() {
         </div>
 
         {/* Section 2: Business Profile */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-2.5">
             <div className="flex items-center gap-2">
               <span className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -198,7 +198,7 @@ export function Step9ReviewSubmit() {
         </div>
 
         {/* Section 3 & 4: Company Details & Address */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-2.5">
             <div className="flex items-center gap-2">
               <Building2 className="size-4 text-primary" />
@@ -253,7 +253,7 @@ export function Step9ReviewSubmit() {
         </div>
 
         {/* Section 5 & 6: KYC & KYB Status */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-2.5">
             <div className="flex items-center gap-2">
               <UserCheck className="size-4 text-primary" />
@@ -320,7 +320,7 @@ export function Step9ReviewSubmit() {
         </div>
 
         {/* Section 7 & 8: Bank Account & Compliance */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-2xs space-y-3">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-border pb-2.5">
             <div className="flex items-center gap-2">
               <Landmark className="size-4 text-primary" />
@@ -369,12 +369,34 @@ export function Step9ReviewSubmit() {
               <span className="text-muted-foreground block text-[11px]">Bank Status</span>
               <VerificationBadge status={formData.step7.isBankVerified} size="sm" />
             </div>
+            <div>
+              <span className="text-muted-foreground block text-[11px]">PEP Declaration</span>
+              <span className="font-medium text-foreground">
+                {formData.step8.pepStatus === "NO"
+                  ? "No PEP Disclosed"
+                  : formData.step8.pepStatus === "YES"
+                  ? "PEP Declared"
+                  : formData.step8.pepStatus === "UNKNOWN"
+                  ? "Pending Determination"
+                  : "—"}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted-foreground block text-[11px]">Tax Residency</span>
+              <span className="font-medium text-foreground">
+                {formData.step8.taxResidency === "INDIA_ONLY"
+                  ? "India Resident"
+                  : formData.step8.taxResidency === "OTHER"
+                  ? `Foreign (${formData.step8.taxResidencyCountry || "Declared"})`
+                  : "—"}
+              </span>
+            </div>
             <div className="sm:col-span-2">
               <span className="text-muted-foreground block text-[11px]">Refund Policy URL</span>
               <a
                 href={formData.step8.refundPolicyUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="font-medium text-primary hover:underline truncate block"
               >
                 {formData.step8.refundPolicyUrl || "—"}
