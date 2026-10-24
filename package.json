@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "npx tsx src/features/onboarding/tests/step6Kyb.test.ts && npx tsx src/features/onboarding/tests/step7BankAccount.test.ts && npx tsx src/features/onboarding/tests/step8Compliance.test.ts && npx tsx src/features/onboarding/tests/statusScreen.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
