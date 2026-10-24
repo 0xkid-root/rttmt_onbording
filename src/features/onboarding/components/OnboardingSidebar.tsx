@@ -44,7 +44,7 @@ export function OnboardingSidebar() {
               disabled={!isAccessible}
               className={`w-full group flex items-start gap-3.5 rounded-lg p-3 text-left transition-all ${
                 isCurrent
-                  ? "bg-primary/10 border border-primary/30 text-foreground font-semibold shadow-2xs"
+                  ? "bg-primary/10 border border-primary/30 text-foreground font-semibold"
                   : isAccessible
                   ? "hover:bg-muted/60 text-muted-foreground hover:text-foreground cursor-pointer"
                   : "opacity-50 cursor-not-allowed text-muted-foreground/60"
@@ -107,3 +107,4 @@ export function OnboardingSidebar() {
     </aside>
   );
 }
+

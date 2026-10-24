@@ -71,9 +71,28 @@ export function useOnboardingWizard(): WizardHookReturn {
             ...data,
           },
         };
-        // Auto-sync entityType changes to step6
-        if (stepKey === "step3" && "entityType" in data && typeof data.entityType === "string") {
-          next.step6.entityType = data.entityType as BusinessEntityType;
+        // Auto-sync entityType and GST status changes from Step 3 to Step 6 with invalidation
+        if (stepKey === "step3") {
+          const s3Data = data as Partial<OnboardingFormData["step3"]>;
+          if ("entityType" in s3Data && typeof s3Data.entityType === "string" && prev.step3.entityType !== s3Data.entityType) {
+            next.step6.entityType = s3Data.entityType as BusinessEntityType;
+            next.step6.isKybVerified = false;
+            next.step6.kybVerificationStatus = "NOT_STARTED";
+            next.step6.kybVerificationNotes = undefined;
+          }
+
+          if ("gstin" in s3Data || "hasNoGstDeclaration" in s3Data) {
+            const hasGst = Boolean(
+              ("gstin" in s3Data ? s3Data.gstin : prev.step3.gstin) &&
+              !("hasNoGstDeclaration" in s3Data ? s3Data.hasNoGstDeclaration : prev.step3.hasNoGstDeclaration)
+            );
+            if (next.step6.hasGstRegistration !== hasGst) {
+              next.step6.hasGstRegistration = hasGst;
+              next.step6.isKybVerified = false;
+              next.step6.kybVerificationStatus = "NOT_STARTED";
+              next.step6.kybVerificationNotes = undefined;
+            }
+          }
         }
         return next;
       });

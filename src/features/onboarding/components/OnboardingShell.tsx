@@ -23,7 +23,7 @@ export function OnboardingShell({ children }: OnboardingShellProps) {
         <main className="flex-1 p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto w-full">
           <div className="space-y-6">
             <DemoAlert />
-            <div className="rounded-xl border border-border bg-card p-5 sm:p-8 shadow-sm">
+            <div className="rounded-xl border border-border bg-card p-5 sm:p-8">
               {children}
               <StepNavigation />
             </div>

@@ -9,7 +9,7 @@ export function DemoAlert() {
   const { loadDemoData, resetDraft } = useOnboarding();
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground shadow-xs">
+    <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-2.5">
           <Info className="mt-0.5 size-4 shrink-0 text-primary" />

@@ -34,7 +34,7 @@ export function LoginScreen() {
   };
 
   const handleUseDemo = () => {
-    setEmail("compliance@aurafintech.io");
+    setEmail("compliance@rttmt.com");
     setPassword("Password@123");
     toast.info("Demo credentials populated.");
   };
@@ -88,7 +88,7 @@ export function LoginScreen() {
         </div>
 
         {/* Login Form Card */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="loginEmail">Email Address</Label>
