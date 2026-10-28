@@ -1,108 +1,28 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Activity,
   FileClock,
-  MailCheck,
-  Briefcase,
-  Building2,
-  FileCheck2,
-  Landmark,
-  ClipboardCheck,
-  ArrowRight
+  ArrowRight,
+  LogIn,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { cn } from "@/lib/utils";
-
-interface WorkflowStage {
-  id: number;
-  stepNumber: string;
-  wizardSteps: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-function subscribeReducedMotion(callback: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mediaQuery.addEventListener("change", callback);
-  return () => mediaQuery.removeEventListener("change", callback);
-}
-
-function getReducedMotionSnapshot() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function getReducedMotionServerSnapshot() {
-  return false;
-}
-
-const WORKFLOW_STAGES: WorkflowStage[] = [
-  {
-    id: 1,
-    stepNumber: "01",
-    wizardSteps: "Step 1",
-    title: "Contact Details",
-    description: "Verify your email and mobile number.",
-    icon: MailCheck
-  },
-  {
-    id: 2,
-    stepNumber: "02",
-    wizardSteps: "Step 2",
-    title: "Business Details",
-    description: "Enter your business information.",
-    icon: Briefcase
-  },
-  {
-    id: 3,
-    stepNumber: "03",
-    wizardSteps: "Steps 3–4",
-    title: "Company & Address",
-    description: "Provide registration and address details.",
-    icon: Building2
-  },
-  {
-    id: 4,
-    stepNumber: "04",
-    wizardSteps: "Steps 5–6",
-    title: "KYC & KYB",
-    description: "Upload required identity and business documents.",
-    icon: FileCheck2
-  },
-  {
-    id: 5,
-    stepNumber: "05",
-    wizardSteps: "Step 7",
-    title: "Bank Details",
-    description: "Provide your settlement account information.",
-    icon: Landmark
-  },
-  {
-    id: 6,
-    stepNumber: "06",
-    wizardSteps: "Steps 8–9",
-    title: "Review & Submit",
-    description: "Review and submit your application.",
-    icon: ClipboardCheck
-  }
-];
+import { WORKFLOW_STAGES } from "./hero/workflowStages";
+import { useReducedMotion } from "../hooks/useReducedMotion";
+import { DesktopStageCard } from "./hero/DesktopStageCard";
+import { MobileStageCard } from "./hero/MobileStageCard";
+import { HorizontalConnector } from "./hero/HorizontalConnector";
 
 export function OnboardingWelcomeHero() {
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
 
   // Check user preference for reduced motion
-  const prefersReducedMotion = useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot
-  );
+  const prefersReducedMotion = useReducedMotion();
 
   // Sequential stage spotlight interval
   useEffect(() => {
@@ -148,7 +68,18 @@ export function OnboardingWelcomeHero() {
             </div>
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <Link
+              href="/login"
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "text-muted-foreground hover:text-foreground text-xs h-7.5 sm:h-8 px-2 sm:px-2.5 focus-visible:ring-2 focus-visible:ring-ring"
+              )}
+            >
+              <LogIn className="mr-1.5 size-3.5 text-muted-foreground" aria-hidden="true" />
+              <span>Login</span>
+            </Link>
+
             <Link
               href="/onboarding/status"
               className={cn(
@@ -290,7 +221,10 @@ export function OnboardingWelcomeHero() {
                     />
                     <polygon
                       points="8,14 12,20 16,14"
-                      className={cn("transition-colors", activeStageIndex === 5 ? "fill-primary" : "fill-border")}
+                      className={cn(
+                        "transition-colors",
+                        activeStageIndex === 5 ? "fill-primary" : "fill-border"
+                      )}
                     />
                   </svg>
                 </div>
@@ -399,244 +333,23 @@ export function OnboardingWelcomeHero() {
           <span className="font-semibold text-foreground font-mono text-[11px] sm:text-xs">
             © 2026 RTTMT · Merchant Onboarding
           </span>
-          <Link
-            href="/onboarding/status"
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Check Application Status
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Demo Portal Login
+            </Link>
+            <span aria-hidden="true">&bull;</span>
+            <Link
+              href="/onboarding/status"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Check Application Status
+            </Link>
+          </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* =========================================================================
- * SUB-COMPONENTS: Stationary Stage Cards & Connectors
- * ========================================================================= */
-
-interface StageCardProps {
-  stage: WorkflowStage;
-  isActive: boolean;
-  onSelect: () => void;
-}
-
-/**
- * Desktop Stage Card (Stationary Node)
- */
-function DesktopStageCard({ stage, isActive, onSelect }: StageCardProps) {
-  const Icon = stage.icon;
-
-  return (
-    <div
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isActive}
-      className={cn(
-        "flex-1 relative rounded-xl border p-3.5 lg:p-4 text-left transition-all duration-200 cursor-pointer select-none",
-        "bg-background/95 hover:bg-background group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        isActive
-          ? "border-primary shadow-xs ring-1 ring-primary/20"
-          : "border-border/80 hover:border-border hover:shadow-2xs"
-      )}
-    >
-      {/* Left Input Handle */}
-      <div
-        className={cn(
-          "absolute -left-1.5 top-1/2 -translate-y-1/2 size-2.5 rounded-full border-2 border-background transition-colors",
-          isActive ? "bg-primary" : "bg-border"
-        )}
-        aria-hidden="true"
-      />
-
-      {/* Right Output Handle */}
-      <div
-        className={cn(
-          "absolute -right-1.5 top-1/2 -translate-y-1/2 size-2.5 rounded-full border-2 border-background transition-colors",
-          isActive ? "bg-primary" : "bg-border"
-        )}
-        aria-hidden="true"
-      />
-
-      {/* Card Header: Step Pill, Reference & Icon */}
-      <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-border/60">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={cn(
-              "flex size-5 items-center justify-center rounded-md font-mono text-[10px] font-bold transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted border border-border text-muted-foreground"
-            )}
-          >
-            {stage.stepNumber}
-          </span>
-          <span className="text-[10px] font-mono font-medium text-muted-foreground">
-            {stage.wizardSteps}
-          </span>
-        </div>
-
-        <div
-          className={cn(
-            "rounded-md p-1.5 transition-colors",
-            isActive
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "bg-muted/50 text-muted-foreground"
-          )}
-        >
-          <Icon className="size-3.5 lg:size-4" />
-        </div>
-      </div>
-
-      {/* Stage Title */}
-      <h3 className="text-sm font-semibold tracking-tight text-foreground leading-snug">
-        {stage.title}
-      </h3>
-
-      {/* Stage Description */}
-      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-        {stage.description}
-      </p>
-    </div>
-  );
-}
-
-/**
- * Mobile Stage Card (Stationary Node)
- */
-function MobileStageCard({ stage, isActive, onSelect }: StageCardProps) {
-  const Icon = stage.icon;
-
-  return (
-    <div
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-pressed={isActive}
-      className={cn(
-        "w-full relative rounded-xl border p-3.5 text-left transition-all duration-200 cursor-pointer select-none",
-        "bg-background/95 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        isActive
-          ? "border-primary shadow-xs ring-1 ring-primary/20"
-          : "border-border/80 hover:border-border"
-      )}
-    >
-      {/* Top Input Handle */}
-      <div
-        className={cn(
-          "absolute -top-1.5 left-1/2 -translate-x-1/2 size-2.5 rounded-full border-2 border-background transition-colors",
-          isActive ? "bg-primary" : "bg-border"
-        )}
-        aria-hidden="true"
-      />
-
-      {/* Bottom Output Handle */}
-      <div
-        className={cn(
-          "absolute -bottom-1.5 left-1/2 -translate-x-1/2 size-2.5 rounded-full border-2 border-background transition-colors",
-          isActive ? "bg-primary" : "bg-border"
-        )}
-        aria-hidden="true"
-      />
-
-      <div className="flex items-start gap-3">
-        <div
-          className={cn(
-            "rounded-lg p-2 shrink-0 transition-colors mt-0.5",
-            isActive
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted border border-border text-foreground"
-          )}
-        >
-          <Icon className="size-4" />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">
-              Stage {stage.stepNumber} · {stage.wizardSteps}
-            </span>
-            {isActive && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-primary font-semibold">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Active
-              </span>
-            )}
-          </div>
-          <h3 className="text-sm font-semibold text-foreground">
-            {stage.title}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-            {stage.description}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Horizontal Animated Dashed Connector for Desktop
- */
-function HorizontalConnector({
-  isActive,
-  isPassed
-}: {
-  isActive: boolean;
-  isPassed: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-center w-6 lg:w-10 shrink-0 relative" aria-hidden="true">
-      <svg className="w-full h-5 overflow-visible" viewBox="0 0 36 20">
-        <line
-          x1="0"
-          y1="10"
-          x2="32"
-          y2="10"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="text-border"
-        />
-
-        <line
-          x1="0"
-          y1="10"
-          x2="32"
-          y2="10"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeDasharray="4 3"
-          className={cn(
-            "transition-colors duration-300",
-            isActive
-              ? "text-primary animate-flow-dash"
-              : isPassed
-              ? "text-primary/60"
-              : "text-border"
-          )}
-        />
-
-        <polygon
-          points="28,6 34,10 28,14"
-          className={cn(
-            "transition-colors duration-300",
-            isActive || isPassed ? "fill-primary" : "fill-border"
-          )}
-        />
-      </svg>
     </div>
   );
 }
