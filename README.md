@@ -135,10 +135,9 @@ Implement these routes:
 
 | Route                | Purpose                                           |
 | -------------------- | ------------------------------------------------- |
-| `/`                  | Redirect to `/onboarding`                         |
+| `/`                  | Welcome hero landing page                         |
 | `/onboarding`        | Complete merchant onboarding wizard               |
 | `/onboarding/status` | Simulated application status                      |
-| `/login`             | Optional demo login if required by the experience |
 
 The onboarding feature owns the wizard logic. Route files should import the appropriate feature screen instead of containing the entire implementation.
 
