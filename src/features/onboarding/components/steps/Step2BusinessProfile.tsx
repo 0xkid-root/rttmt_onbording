@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useOnboarding } from "../../hooks/OnboardingContext";
 import { BUSINESS_CATEGORIES, MONTHLY_VOLUME_TIERS } from "../../mocks/options";
+import { validateAndNormalizeWebUrl } from "../../utils/formatters";
 
 export function Step2BusinessProfile() {
   const { formData, updateStepData, stepErrors } = useOnboarding();
@@ -34,6 +35,22 @@ export function Step2BusinessProfile() {
       }
     }
   }, [data.businessCategory, data.subCategory, availableSubcategories, updateStepData]);
+
+  const handleWebsiteBlur = () => {
+    if (!data.websiteUrl || !data.websiteUrl.trim()) return;
+    const res = validateAndNormalizeWebUrl(data.websiteUrl);
+    if (res.isValid && res.normalizedUrl) {
+      updateStepData("step2", { websiteUrl: res.normalizedUrl });
+    }
+  };
+
+  const handleMobileAppBlur = () => {
+    if (!data.mobileAppUrl || !data.mobileAppUrl.trim()) return;
+    const res = validateAndNormalizeWebUrl(data.mobileAppUrl);
+    if (res.isValid && res.normalizedUrl) {
+      updateStepData("step2", { mobileAppUrl: res.normalizedUrl });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -176,6 +193,7 @@ export function Step2BusinessProfile() {
                   type="url"
                   value={data.websiteUrl}
                   onChange={(e) => updateStepData("step2", { websiteUrl: e.target.value })}
+                  onBlur={handleWebsiteBlur}
                   placeholder="https://yourdomain.com"
                   className="pl-9"
                   aria-invalid={!!stepErrors["websiteUrl"]}
@@ -199,6 +217,7 @@ export function Step2BusinessProfile() {
                   type="url"
                   value={data.mobileAppUrl || ""}
                   onChange={(e) => updateStepData("step2", { mobileAppUrl: e.target.value })}
+                  onBlur={handleMobileAppBlur}
                   placeholder="https://play.google.com/store/apps/..."
                   className="pl-9"
                   aria-invalid={!!stepErrors["mobileAppUrl"]}
