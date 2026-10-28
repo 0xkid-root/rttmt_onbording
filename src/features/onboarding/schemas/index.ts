@@ -72,14 +72,16 @@ export const step2BusinessProfileSchema = z
       .string()
       .trim()
       .min(1, "Business website URL is required")
-      .url("Enter a valid URL (e.g., https://example.com)"),
+      .refine((val) => validateAndNormalizeWebUrl(val).isValid, {
+        message: "Enter a valid website URL (e.g., https://example.com)",
+      }),
     mobileAppUrl: z
       .string()
       .trim()
       .optional()
       .or(z.literal(""))
-      .refine((val) => !val || z.string().url().safeParse(val).success, {
-        message: "Please enter a valid app store link or leave empty",
+      .refine((val) => !val || validateAndNormalizeWebUrl(val).isValid, {
+        message: "Please enter a valid app store link (HTTP/HTTPS) or leave empty",
       }),
     businessDescription: z
       .string()
@@ -351,10 +353,18 @@ export const step5KYCSchema = z
       });
     }
     if (!data.isIdVerified) {
+      const docLabel =
+        data.idDocumentType === "PASSPORT"
+          ? "Passport Number"
+          : data.idDocumentType === "VOTER_ID"
+          ? "Voter ID"
+          : data.idDocumentType === "PAN"
+          ? "PAN"
+          : "Aadhaar Number";
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["idDocumentNumber"],
-        message: "Please verify Aadhaar Number",
+        message: `Please verify ${docLabel}`,
       });
     }
 
