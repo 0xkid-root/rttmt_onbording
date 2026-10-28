@@ -6,7 +6,6 @@ import {
   Activity,
   FileClock,
   ArrowRight,
-  LogIn,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
@@ -69,17 +68,6 @@ export function OnboardingWelcomeHero() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <Link
-              href="/login"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "text-muted-foreground hover:text-foreground text-xs h-7.5 sm:h-8 px-2 sm:px-2.5 focus-visible:ring-2 focus-visible:ring-ring"
-              )}
-            >
-              <LogIn className="mr-1.5 size-3.5 text-muted-foreground" aria-hidden="true" />
-              <span>Login</span>
-            </Link>
-
             <Link
               href="/onboarding/status"
               className={cn(
@@ -334,13 +322,6 @@ export function OnboardingWelcomeHero() {
             © 2026 RTTMT · Merchant Onboarding
           </span>
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Demo Portal Login
-            </Link>
-            <span aria-hidden="true">&bull;</span>
             <Link
               href="/onboarding/status"
               className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
