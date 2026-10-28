@@ -43,6 +43,7 @@ export function DocumentUploadBox({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const handleFileProcess = (file: File) => {
     setUploadError(null);
@@ -148,16 +149,23 @@ export function DocumentUploadBox({
             {isImageFile && document.fileUrl ? (
               <button
                 type="button"
-                onClick={() => setShowPreviewModal(true)}
-                className="relative size-11 shrink-0 overflow-hidden rounded-md border border-border bg-muted/70 group/thumb cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                onClick={() => {
+                  setImageLoadError(false);
+                  setShowPreviewModal(true);
+                }}
+                className="relative size-11 shrink-0 overflow-hidden rounded-md border border-border bg-muted/70 group/thumb cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-center"
                 title="Click to view image preview"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={document.fileUrl}
                   alt={document.name}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = "none";
+                  }}
                   className="size-full object-cover transition-transform group-hover/thumb:scale-105"
                 />
+                <FileText className="size-5 text-muted-foreground pointer-events-none" />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white">
                   <Eye className="size-3.5" />
                 </div>
@@ -285,13 +293,27 @@ export function DocumentUploadBox({
                 <X className="size-4" />
               </button>
             </div>
-            <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-muted/30 rounded p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={document.fileUrl}
-                alt={document.name}
-                className="max-h-[70vh] w-auto max-w-full rounded object-contain"
-              />
+            <div className="max-h-[75vh] min-h-[160px] overflow-auto flex items-center justify-center bg-muted/30 rounded p-4 text-center">
+              {imageLoadError ? (
+                <div className="flex flex-col items-center gap-2 max-w-sm text-center py-4">
+                  <FileText className="size-10 text-muted-foreground/60" />
+                  <p className="text-xs font-semibold text-foreground">
+                    Original binary preview unavailable
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    In-memory browser file references expire across session restores.
+                    The uploaded document metadata ({document.name}) remains recorded for review. To inspect or replace the image preview, please re-upload the file.
+                  </p>
+                </div>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={document.fileUrl}
+                  alt={document.name}
+                  onError={() => setImageLoadError(true)}
+                  className="max-h-[70vh] w-auto max-w-full rounded object-contain"
+                />
+              )}
             </div>
           </div>
         </div>
