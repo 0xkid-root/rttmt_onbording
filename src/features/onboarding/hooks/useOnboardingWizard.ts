@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { OnboardingFormData, StepKey, ApplicationSubmissionRecord, BusinessEntityType } from "../types";
@@ -41,6 +41,7 @@ export function useOnboardingWizard(): WizardHookReturn {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [formData, setFormData] = useState<OnboardingFormData>(DEFAULT_ONBOARDING_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const isSubmittingRef = useRef<boolean>(false);
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
@@ -86,8 +87,12 @@ export function useOnboardingWizard(): WizardHookReturn {
               ("gstin" in s3Data ? s3Data.gstin : prev.step3.gstin) &&
               !("hasNoGstDeclaration" in s3Data ? s3Data.hasNoGstDeclaration : prev.step3.hasNoGstDeclaration)
             );
-            if (next.step6.hasGstRegistration !== hasGst) {
+            const isExempt = Boolean(
+              "hasNoGstDeclaration" in s3Data ? s3Data.hasNoGstDeclaration : prev.step3.hasNoGstDeclaration
+            );
+            if (next.step6.hasGstRegistration !== hasGst || next.step6.isGstExempt !== isExempt) {
               next.step6.hasGstRegistration = hasGst;
+              next.step6.isGstExempt = isExempt;
               next.step6.isKybVerified = false;
               next.step6.kybVerificationStatus = "NOT_STARTED";
               next.step6.kybVerificationNotes = undefined;
@@ -154,7 +159,7 @@ export function useOnboardingWizard(): WizardHookReturn {
     return set;
   }, [validateStep]);
 
-  // Navigate to specific step
+  // Navigate to specific step with sequential validation of intermediate steps
   const goToStep = useCallback(
     (step: number) => {
       if (step < 1 || step > 9) return;
@@ -167,14 +172,26 @@ export function useOnboardingWizard(): WizardHookReturn {
         return;
       }
 
-      // If jumping ahead, ensure current step is valid
-      if (validateCurrentStep()) {
-        setStepErrors({});
-        setCurrentStep(step);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      // If jumping ahead, validate all intermediate steps between currentStep and step - 1
+      for (let i = currentStep; i < step; i++) {
+        const { isValid, errors } = validateStep(i);
+        if (!isValid) {
+          setCurrentStep(i);
+          setStepErrors(errors);
+          const firstError = Object.values(errors)[0] || "Please fill in all required fields";
+          toast.error(`Step ${i} requires attention before proceeding.`, {
+            description: firstError,
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
       }
+
+      setStepErrors({});
+      setCurrentStep(step);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [currentStep, validateCurrentStep]
+    [currentStep, validateStep]
   );
 
   // Next step
@@ -234,11 +251,17 @@ export function useOnboardingWizard(): WizardHookReturn {
     });
   }, []);
 
-  // Submit complete application
+  // Submit complete application with in-flight duplicate guard
   const submit = useCallback(async (): Promise<ApplicationSubmissionRecord | null> => {
+    if (isSubmittingRef.current) {
+      return null;
+    }
+    isSubmittingRef.current = true;
+
     // Validate Step 9
     const step9Result = validateStep(9);
     if (!step9Result.isValid) {
+      isSubmittingRef.current = false;
       setStepErrors(step9Result.errors);
       toast.error("Please agree to the statutory declarations before submitting.");
       return null;
@@ -248,6 +271,7 @@ export function useOnboardingWizard(): WizardHookReturn {
     for (let i = 1; i <= 8; i++) {
       const res = validateStep(i);
       if (!res.isValid) {
+        isSubmittingRef.current = false;
         toast.error(`Step ${i} requires attention before submission.`, {
           description: Object.values(res.errors)[0],
         });
@@ -270,6 +294,7 @@ export function useOnboardingWizard(): WizardHookReturn {
       toast.error("Submission failed. Please retry.");
       return null;
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [formData, router, validateStep]);
