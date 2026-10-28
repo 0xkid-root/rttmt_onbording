@@ -1,28 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useMemo } from "react";
-import {
-  UserCheck,
-  ShieldCheck,
-  RefreshCw,
-  Mail,
-  Phone,
-  IdCard,
-  CheckCircle2,
-  AlertCircle,
-  CreditCard,
-  MapPin,
-  FileCheck,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { UserCheck } from "lucide-react";
 import { useOnboarding } from "../../hooks/OnboardingContext";
-import { DocumentUploadBox } from "../common/DocumentUploadBox";
 import { VerificationBadge } from "../common/VerificationBadge";
 import {
   formatPan,
-  formatPhoneNumber,
   formatAadhaarInput,
 } from "../../utils/formatters";
 import {
@@ -33,19 +16,13 @@ import {
   Step5KYCData,
   UploadedDocument,
 } from "../../types";
-
-const AADHAAR_SLOTS = [
-  {
-    id: "front" as const,
-    sideBadge: "Front Side",
-    label: "Aadhaar Card Front",
-  },
-  {
-    id: "back" as const,
-    sideBadge: "Back Side",
-    label: "Aadhaar Card Back",
-  },
-];
+import { SignatoryPersonalDetails } from "./step5/SignatoryPersonalDetails";
+import { SignatoryPanVerification } from "./step5/SignatoryPanVerification";
+import { SignatoryAadhaarVerification } from "./step5/SignatoryAadhaarVerification";
+import {
+  SignatoryDocumentUploads,
+  AADHAAR_SLOTS,
+} from "./step5/SignatoryDocumentUploads";
 
 export function Step5KYC() {
   const { formData, updateStepData, stepErrors } = useOnboarding();
@@ -409,432 +386,57 @@ export function Step5KYC() {
             </div>
           )}
 
-          {/* Row 1 — Two columns: Full Legal Name & Designation */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="signatoryName">
-                Full Legal Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="signatoryName"
-                value={data.signatoryName}
-                onChange={(e) => handleFieldChange({ signatoryName: e.target.value })}
-                placeholder="e.g. Aditya Vikram Rao"
-                aria-invalid={Boolean(stepErrors["signatoryName"])}
-                aria-describedby={stepErrors["signatoryName"] ? "signatoryName-error" : undefined}
-              />
-              {stepErrors["signatoryName"] && (
-                <p id="signatoryName-error" role="alert" className="text-xs font-medium text-destructive">
-                  {stepErrors["signatoryName"]}
-                </p>
-              )}
-            </div>
+          {/* Legal Name & Designation */}
+          <SignatoryPersonalDetails
+            signatoryName={data.signatoryName}
+            designation={data.designation}
+            signatoryEmail={data.signatoryEmail}
+            signatoryPhone={data.signatoryPhone}
+            roleLabel={getSignatoryRoleLabel()}
+            onFieldChange={handleFieldChange}
+            stepErrors={stepErrors}
+          />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="designation">
-                Designation / Position in Entity <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="designation"
-                value={data.designation}
-                onChange={(e) => handleFieldChange({ designation: e.target.value })}
-                placeholder={`e.g. ${getSignatoryRoleLabel()}`}
-                aria-invalid={Boolean(stepErrors["designation"])}
-                aria-describedby={stepErrors["designation"] ? "designation-error" : undefined}
-              />
-              {stepErrors["designation"] && (
-                <p id="designation-error" role="alert" className="text-xs font-medium text-destructive">
-                  {stepErrors["designation"]}
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Personal PAN verification section */}
+          <SignatoryPanVerification
+            personalPan={data.personalPan}
+            isPanVerified={Boolean(data.isPanVerified)}
+            panVerifiedName={data.panVerifiedName}
+            signatoryName={data.signatoryName}
+            isPanVerifying={isPanVerifying}
+            panFeedback={panFeedback}
+            panVerificationError={panVerificationError}
+            isNameMatching={isNameMatching}
+            onPanChange={handlePanChange}
+            onVerifyPan={handleVerifyPan}
+            isValidPanFormat={isValidPanFormat}
+            stepErrors={stepErrors}
+          />
 
-          {/* Row 2 — Personal PAN: Input on left (flex-1), Button on right (shrink-0), horizontal on desktop, stacked on mobile */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="personalPan">
-                Personal PAN <span className="text-destructive">*</span>
-              </Label>
-              {data.isPanVerified && (
-                <VerificationBadge status="VERIFIED" label="Verified" size="sm" />
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-              <div className="relative flex-1">
-                <CreditCard className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="personalPan"
-                  maxLength={10}
-                  value={data.personalPan}
-                  onChange={(e) => handlePanChange(e.target.value)}
-                  placeholder="BKNPR4821E"
-                  className="pl-9 font-mono text-sm uppercase tracking-wider"
-                  aria-invalid={Boolean(stepErrors["personalPan"] || panVerificationError)}
-                  aria-describedby={
-                    stepErrors["personalPan"]
-                      ? "personalPan-error"
-                      : panVerificationError
-                        ? "pan-verification-error"
-                        : undefined
-                  }
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant={data.isPanVerified ? "outline" : "default"}
-                onClick={handleVerifyPan}
-                disabled={isPanVerifying || !isValidPanFormat(data.personalPan)}
-                className="shrink-0 h-10 px-4"
-                aria-busy={isPanVerifying}
-              >
-                {isPanVerifying ? (
-                  <>
-                    <RefreshCw className="mr-2 size-3.5 animate-spin" />
-                    Verifying PAN
-                  </>
-                ) : data.isPanVerified ? (
-                  <>
-                    <ShieldCheck className="mr-2 size-3.5 text-emerald-600 dark:text-emerald-400" />
-                    Re-Verify PAN
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="mr-2 size-3.5" />
-                    Verify PAN
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Row 2 Accessible Messages & Feedback */}
-            {stepErrors["personalPan"] && (
-              <p id="personalPan-error" role="alert" className="text-xs font-medium text-destructive">
-                {stepErrors["personalPan"]}
-              </p>
-            )}
-
-            {panVerificationError && (
-              <div
-                id="pan-verification-error"
-                className="flex items-center gap-1.5 text-xs text-destructive font-medium pt-0.5"
-                role="alert"
-              >
-                <AlertCircle className="size-3.5 shrink-0" />
-                <span>{panVerificationError}</span>
-              </div>
-            )}
-
-            {/* PAN Verification Success State & Name Comparison Review Panel */}
-            {data.isPanVerified && data.panVerifiedName && (
-              <div className="mt-2.5 rounded-lg border border-border bg-muted/40 p-3 space-y-2.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                    <CheckCircle2 className="size-3.5 shrink-0" />
-                    <span>{panFeedback || "Simulated PAN verification successful."}</span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium bg-muted px-1.5 py-0.5 rounded border border-border">
-                    Simulated / Demo Provider
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-border/60">
-                  <div className="rounded-md bg-background/90 p-2.5 border border-border/60 space-y-0.5">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium block">
-                      Verified PAN Holder Name (Provider Record)
-                    </span>
-                    <span className="font-mono font-semibold text-foreground text-xs block">
-                      {data.panVerifiedName}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground block">
-                      Status: Active & Registered (Simulated Demo Check)
-                    </span>
-                  </div>
-
-                  <div className="rounded-md bg-background/90 p-2.5 border border-border/60 space-y-0.5">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium block">
-                      Signatory Full Legal Name
-                    </span>
-                    <span className="font-semibold text-foreground text-xs block truncate">
-                      {data.signatoryName || "— (Please enter full legal name above)"}
-                    </span>
-                    <div className="pt-0.5">
-                      {isNameMatching === true && (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                          <CheckCircle2 className="size-3" />
-                          Names match correctly
-                        </span>
-                      )}
-                      {isNameMatching === false && (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-500 font-medium">
-                          <AlertCircle className="size-3" />
-                          Name discrepancy — review signatory name against PAN card
-                        </span>
-                      )}
-                      {isNameMatching === null && (
-                        <span className="text-[11px] text-muted-foreground">
-                          Enter signatory legal name above to verify match
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Row 3 — Aadhaar Number: Input on left (flex-1), Button on right (shrink-0), horizontal on desktop, stacked on mobile */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="aadhaarNumber">
-                Aadhaar Number (12 digits / masked) <span className="text-destructive">*</span>
-              </Label>
-              {data.isIdVerified && (
-                <VerificationBadge status="VERIFIED" label="Verified" size="sm" />
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-              <div className="relative flex-1">
-                <IdCard className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="aadhaarNumber"
-                  maxLength={14}
-                  value={data.idDocumentNumber}
-                  onChange={(e) => handleAadhaarChange(e.target.value)}
-                  placeholder="XXXX XXXX 9034"
-                  className="pl-9 font-mono text-sm uppercase"
-                  aria-invalid={Boolean(stepErrors["idDocumentNumber"] || aadhaarVerificationError)}
-                  aria-describedby={
-                    stepErrors["idDocumentNumber"]
-                      ? "idDocumentNumber-error"
-                      : aadhaarVerificationError
-                        ? "aadhaar-verification-error"
-                        : undefined
-                  }
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant={data.isIdVerified ? "outline" : "default"}
-                onClick={handleVerifyAadhaar}
-                disabled={isAadhaarVerifying || !data.idDocumentNumber.trim()}
-                className="shrink-0 h-10 px-4"
-                aria-busy={isAadhaarVerifying}
-              >
-                {isAadhaarVerifying ? (
-                  <>
-                    <RefreshCw className="mr-2 size-3.5 animate-spin" />
-                    Verifying Aadhaar
-                  </>
-                ) : data.isIdVerified ? (
-                  <>
-                    <ShieldCheck className="mr-2 size-3.5 text-emerald-600 dark:text-emerald-400" />
-                    Re-Verify Aadhaar
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="mr-2 size-3.5" />
-                    Verify Aadhaar
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Row 3 Accessible Messages & Feedback */}
-            {stepErrors["idDocumentNumber"] && (
-              <p id="idDocumentNumber-error" role="alert" className="text-xs font-medium text-destructive">
-                {stepErrors["idDocumentNumber"]}
-              </p>
-            )}
-
-            {aadhaarFeedback && (
-              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium pt-0.5" role="status">
-                <CheckCircle2 className="size-3.5 shrink-0" />
-                <span>{aadhaarFeedback}</span>
-              </div>
-            )}
-
-            {aadhaarVerificationError && (
-              <div
-                id="aadhaar-verification-error"
-                className="flex items-center gap-1.5 text-xs text-destructive font-medium pt-0.5"
-                role="alert"
-              >
-                <AlertCircle className="size-3.5 shrink-0" />
-                <span>{aadhaarVerificationError}</span>
-              </div>
-            )}
-
-            {stepErrors["isKycVerified"] && !data.isKycVerified && (
-              <p id="isKycVerified-error" role="alert" className="text-xs font-medium text-destructive">
-                {stepErrors["isKycVerified"]}
-              </p>
-            )}
-          </div>
-
-          {/* Row 4 — Two columns: Signatory Official Email & Signatory Direct Mobile */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="signatoryEmail">
-                Signatory Official Email <span className="text-destructive">*</span>
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="signatoryEmail"
-                  type="email"
-                  value={data.signatoryEmail}
-                  onChange={(e) => handleFieldChange({ signatoryEmail: e.target.value })}
-                  placeholder="signatory@company.com"
-                  className="pl-9"
-                  aria-invalid={Boolean(stepErrors["signatoryEmail"])}
-                  aria-describedby={stepErrors["signatoryEmail"] ? "signatoryEmail-error" : undefined}
-                />
-              </div>
-              {stepErrors["signatoryEmail"] && (
-                <p id="signatoryEmail-error" role="alert" className="text-xs font-medium text-destructive">
-                  {stepErrors["signatoryEmail"]}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="signatoryPhone">
-                Signatory Direct Mobile <span className="text-destructive">*</span>
-              </Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                  id="signatoryPhone"
-                  maxLength={10}
-                  inputMode="numeric"
-                  value={data.signatoryPhone}
-                  onChange={(e) =>
-                    handleFieldChange({
-                      signatoryPhone: formatPhoneNumber(e.target.value),
-                    })
-                  }
-                  placeholder="98765 43210"
-                  className="pl-9"
-                  aria-invalid={Boolean(stepErrors["signatoryPhone"])}
-                  aria-describedby={stepErrors["signatoryPhone"] ? "signatoryPhone-error" : undefined}
-                />
-              </div>
-              {stepErrors["signatoryPhone"] && (
-                <p id="signatoryPhone-error" role="alert" className="text-xs font-medium text-destructive">
-                  {stepErrors["signatoryPhone"]}
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Aadhaar verification section */}
+          <SignatoryAadhaarVerification
+            idDocumentNumber={data.idDocumentNumber}
+            isIdVerified={Boolean(data.isIdVerified)}
+            isAadhaarVerifying={isAadhaarVerifying}
+            aadhaarFeedback={aadhaarFeedback}
+            aadhaarVerificationError={aadhaarVerificationError}
+            isKycVerified={Boolean(data.isKycVerified)}
+            onAadhaarChange={handleAadhaarChange}
+            onVerifyAadhaar={handleVerifyAadhaar}
+            stepErrors={stepErrors}
+          />
         </div>
 
         {/* Dynamic KYC Document Uploads Section */}
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-6">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-              <IdCard className="size-4 text-primary" />
-              Signatory KYC Document Uploads
-            </h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Upload clear, readable copies of valid identity and residential address documents. PDF, PNG, JPG, or WEBP up to 5MB.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {/* Card 1: Identity Proof Document Section (Aadhaar Card only) */}
-            <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2">
-                  <FileCheck className="size-4 text-primary" />
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Identity Proof (Aadhaar Card) <span className="text-destructive">*</span>
-                  </h4>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {isIdentityUploadsComplete ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
-                      <CheckCircle2 className="size-3" />
-                      Complete
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0">
-                      {identityUploadedCount} of {AADHAAR_SLOTS.length} uploaded
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Aadhaar Upload Slots: Front & Back */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                {AADHAAR_SLOTS.map((slot) => {
-                  const currentDoc =
-                    data.identityProofFiles?.[slot.id] ||
-                    (slot.id === "front" ? data.identityProofDocument : undefined);
-                  const slotError =
-                    stepErrors[`identityProof_${slot.id}`] ||
-                    (slot.id === "front" ? stepErrors["identityProofDocument"] : undefined);
-
-                  return (
-                    <DocumentUploadBox
-                      key={`identity-aadhaar-${slot.id}`}
-                      label={slot.label}
-                      sideBadge={slot.sideBadge}
-                      required
-                      documentType={`AADHAAR_${slot.id.toUpperCase()}`}
-                      document={currentDoc}
-                      onDocumentChange={(doc) => handleIdentityFileChange(slot.id, doc)}
-                      error={slotError}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Card 2: Address Proof Document Section (Electricity / Utility Bill only) */}
-            <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="size-4 text-primary" />
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Address Proof (Electricity / Utility Bill) <span className="text-destructive">*</span>
-                  </h4>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  {isAddressUploadsComplete ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
-                      <CheckCircle2 className="size-3" />
-                      Complete
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0">
-                      0 of 1 uploaded
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Single Utility Bill Upload Slot */}
-              <div className="grid gap-4 sm:grid-cols-1">
-                <DocumentUploadBox
-                  label="Electricity / Utility Bill"
-                  sideBadge="Latest Bill"
-                  required
-                  documentType="UTILITY_BILL"
-                  document={data.addressProofFiles?.front || data.addressProofDocument}
-                  onDocumentChange={handleAddressFileChange}
-                  error={stepErrors["addressProof_front"] || stepErrors["addressProofDocument"]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        <SignatoryDocumentUploads
+          data={data}
+          isIdentityUploadsComplete={isIdentityUploadsComplete}
+          identityUploadedCount={identityUploadedCount}
+          isAddressUploadsComplete={isAddressUploadsComplete}
+          onIdentityFileChange={handleIdentityFileChange}
+          onAddressFileChange={handleAddressFileChange}
+          stepErrors={stepErrors}
+        />
       </div>
     </div>
   );
