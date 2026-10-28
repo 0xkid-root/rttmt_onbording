@@ -1,12 +1,13 @@
 import { Metadata } from "next";
-import { OnboardingWelcomeHero } from "@/features/onboarding/components/OnboardingWelcomeHero";
+import { LoginScreen } from "@/features/onboarding/components/LoginScreen";
 
 export const metadata: Metadata = {
-  title: "Merchant Onboarding — RTTMT",
-  description: "Start your merchant onboarding flow on RTTMT Threat Gateway.",
+  title: "Merchant Portal Login (Demo) — RTTMT",
+  description: "Sign in to access your RTTMT merchant onboarding portal (Simulated environment).",
 };
 
 export default function LoginPage() {
-  return <OnboardingWelcomeHero />;
+  return <LoginScreen />;
 }
+
 
