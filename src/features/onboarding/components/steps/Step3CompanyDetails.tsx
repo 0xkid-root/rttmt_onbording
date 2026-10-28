@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useOnboarding } from "../../hooks/OnboardingContext";
 import { ENTITY_TYPE_OPTIONS } from "../../mocks/options";
 import { BusinessEntityType } from "../../types";
@@ -226,8 +227,13 @@ export function Step3CompanyDetails() {
                 onChange={(e) =>
                   updateStepData("step3", { gstin: formatGstin(e.target.value) })
                 }
-                placeholder="27AAACA7823K1Z5"
-                className="font-mono text-sm tracking-wider uppercase"
+                disabled={Boolean(data.hasNoGstDeclaration)}
+                placeholder={
+                  data.hasNoGstDeclaration
+                    ? "Exemption self-declared (GSTIN not applicable)"
+                    : "27AAACA7823K1Z5"
+                }
+                className="font-mono text-sm tracking-wider uppercase disabled:opacity-60 disabled:cursor-not-allowed"
                 aria-invalid={Boolean(stepErrors["gstin"])}
                 aria-describedby={
                   stepErrors["gstin"] ? "gstin-error" : undefined
@@ -237,6 +243,32 @@ export function Step3CompanyDetails() {
                 <p id="gstin-error" role="alert" className="text-xs font-medium text-destructive">
                   {stepErrors["gstin"]}
                 </p>
+              )}
+
+              {/* Conditional GST Exemption Declaration for Non-Corporate Entities */}
+              {!isGstinRequired && (
+                <div className="flex items-start gap-2 pt-1.5">
+                  <Checkbox
+                    id="hasNoGstDeclaration"
+                    checked={Boolean(data.hasNoGstDeclaration)}
+                    onCheckedChange={(checked) => {
+                      const isChecked = Boolean(checked);
+                      updateStepData("step3", {
+                        hasNoGstDeclaration: isChecked,
+                        ...(isChecked ? { gstin: "" } : {}),
+                      });
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div className="grid gap-0.5 leading-none">
+                    <Label
+                      htmlFor="hasNoGstDeclaration"
+                      className="text-xs font-normal text-muted-foreground cursor-pointer select-none leading-relaxed"
+                    >
+                      Entity claims statutory GST exemption (e.g. turnover below registration threshold or dealing in exempt supplies)
+                    </Label>
+                  </div>
+                </div>
               )}
             </div>
           </div>
