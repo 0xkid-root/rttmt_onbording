@@ -45,25 +45,21 @@ export function ContactVerificationFields({
 
   return (
     <div className="space-y-4">
-      {/* Row 1 — Official Company Email */}
-      <div className="space-y-1.5">
+      {/* Row 1 — Work Email */}
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
-            <span>Official Company Email</span>
-            <span className="text-destructive">*</span>
-            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-              Corporate Domain
-            </span>
+          <Label htmlFor="email" className="text-sm font-medium text-foreground">
+            Work Email <span className="text-destructive">*</span>
           </Label>
           {data.isEmailVerified && (
             <VerificationBadge status={true} label="Verified" size="sm" />
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Must be your official corporate domain (e.g. name@company.com). Personal domains like Gmail/Yahoo are not permitted.
+          Official company email ID (e.g. name@company.com)
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
           <div className="relative flex-1">
             <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
             <Input
@@ -76,7 +72,7 @@ export function ContactVerificationFields({
                   isEmailVerified: false,
                 })
               }
-              placeholder="merchant.admin@company.com"
+              placeholder="name@company.com"
               className="pl-9 h-9.5 text-sm"
               disabled={data.isEmailVerified}
               aria-invalid={Boolean(
@@ -121,7 +117,7 @@ export function ContactVerificationFields({
         {!data.isEmailVerified && emailValidation && !emailValidation.isValid && (
           <p id="email-warning" role="alert" className="text-xs font-medium text-destructive flex items-center gap-1.5 pt-0.5">
             <AlertCircle className="size-3.5 shrink-0" />
-            <span>{emailValidation.error}</span>
+            <span>Personal email (@{emailValidation.domain || "webmail"}) not allowed. Please use your company email ID.</span>
           </p>
         )}
 
@@ -129,7 +125,7 @@ export function ContactVerificationFields({
         {!data.isEmailVerified && emailValidation?.isValid && (
           <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
             <CheckCircle2 className="size-3.5 shrink-0" />
-            <span>Official company domain recognized (@{emailValidation.domain}). Ready for OTP verification.</span>
+            <span>Official company email recognized.</span>
           </p>
         )}
 
@@ -145,26 +141,21 @@ export function ContactVerificationFields({
         )}
       </div>
 
-      {/* Row 2 — Aadhaar-Linked Mobile Number */}
-      <div className="space-y-1.5">
+      {/* Row 2 — Mobile Number */}
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <Label htmlFor="phone" className="text-sm font-medium text-foreground flex items-center gap-2">
-            <span>Mobile Number</span>
-            <span className="text-destructive">*</span>
-            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
-              <ShieldCheck className="size-3" />
-              Aadhaar Linked
-            </span>
+          <Label htmlFor="phone" className="text-sm font-medium text-foreground">
+            Mobile Number <span className="text-destructive">*</span>
           </Label>
           {data.isPhoneVerified && (
             <VerificationBadge status={true} label="Verified" size="sm" />
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Must be the 10-digit mobile number linked to your UIDAI Aadhaar card for KYC authentication and OTPs.
+          Aadhaar-linked mobile number for KYC OTP
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
           <div className="relative flex flex-1">
             <div className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-xs text-muted-foreground font-medium select-none h-9.5">
               +91
@@ -232,7 +223,7 @@ export function ContactVerificationFields({
         {!data.isPhoneVerified && phoneValidation?.isValid && (
           <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
             <CheckCircle2 className="size-3.5 shrink-0" />
-            <span>Valid 10-digit Indian mobile. Ready for Aadhaar OTP verification.</span>
+            <span>Valid 10-digit mobile.</span>
           </p>
         )}
 
