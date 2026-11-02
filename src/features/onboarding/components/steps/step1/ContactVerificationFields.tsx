@@ -1,12 +1,16 @@
 "use client";
 
-import React from "react";
-import { Mail, ShieldCheck } from "lucide-react";
+import React, { useMemo } from "react";
+import { Mail, ShieldCheck, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { VerificationBadge } from "../../common/VerificationBadge";
-import { formatPhoneNumber } from "../../../utils/formatters";
+import {
+  formatPhoneNumber,
+  isOfficialCompanyEmail,
+  isValidIndianMobileNumber,
+} from "../../../utils/formatters";
 import { Step1AccountData } from "../../../types";
 
 interface ContactVerificationFieldsProps {
@@ -24,18 +28,41 @@ export function ContactVerificationFields({
   onOpenPhoneOtp,
   stepErrors,
 }: ContactVerificationFieldsProps) {
+  // Real-time evaluation of official company domain
+  const emailValidation = useMemo(() => {
+    if (!data.email || !data.email.trim()) return null;
+    return isOfficialCompanyEmail(data.email);
+  }, [data.email]);
+
+  // Real-time evaluation of Aadhaar mobile eligibility
+  const phoneValidation = useMemo(() => {
+    if (!data.phone || !data.phone.trim()) return null;
+    return isValidIndianMobileNumber(data.phone);
+  }, [data.phone]);
+
+  const isEmailOtpEligible = Boolean(emailValidation?.isValid);
+  const isPhoneOtpEligible = Boolean(phoneValidation?.isValid);
+
   return (
     <div className="space-y-4">
-      {/* Row 1 — Work Email */}
+      {/* Row 1 — Official Company Email */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label htmlFor="email" className="text-sm font-medium text-foreground">
-            Work Email <span className="text-destructive">*</span>
+          <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+            <span>Official Company Email</span>
+            <span className="text-destructive">*</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+              Corporate Domain
+            </span>
           </Label>
           {data.isEmailVerified && (
             <VerificationBadge status={true} label="Verified" size="sm" />
           )}
         </div>
+        <p className="text-xs text-muted-foreground">
+          Must be your official corporate domain (e.g. name@company.com). Personal domains like Gmail/Yahoo are not permitted.
+        </p>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
@@ -52,8 +79,18 @@ export function ContactVerificationFields({
               placeholder="merchant.admin@company.com"
               className="pl-9 h-9.5 text-sm"
               disabled={data.isEmailVerified}
-              aria-invalid={Boolean(stepErrors["email"] || (stepErrors["isEmailVerified"] && !data.isEmailVerified))}
-              aria-describedby={stepErrors["email"] ? "email-error" : undefined}
+              aria-invalid={Boolean(
+                stepErrors["email"] ||
+                  (stepErrors["isEmailVerified"] && !data.isEmailVerified) ||
+                  (emailValidation && !emailValidation.isValid)
+              )}
+              aria-describedby={
+                stepErrors["email"]
+                  ? "email-error"
+                  : emailValidation && !emailValidation.isValid
+                  ? "email-warning"
+                  : undefined
+              }
             />
           </div>
           {data.isEmailVerified ? (
@@ -71,7 +108,7 @@ export function ContactVerificationFields({
               type="button"
               size="sm"
               onClick={onOpenEmailOtp}
-              disabled={!data.email || !data.email.includes("@")}
+              disabled={!isEmailOtpEligible}
               className="h-9.5 px-4 font-medium shrink-0"
             >
               <ShieldCheck className="mr-1.5 size-4" />
@@ -79,7 +116,24 @@ export function ContactVerificationFields({
             </Button>
           )}
         </div>
-        {stepErrors["email"] && (
+
+        {/* Real-time personal webmail warning */}
+        {!data.isEmailVerified && emailValidation && !emailValidation.isValid && (
+          <p id="email-warning" role="alert" className="text-xs font-medium text-destructive flex items-center gap-1.5 pt-0.5">
+            <AlertCircle className="size-3.5 shrink-0" />
+            <span>{emailValidation.error}</span>
+          </p>
+        )}
+
+        {/* Valid corporate domain indicator */}
+        {!data.isEmailVerified && emailValidation?.isValid && (
+          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
+            <CheckCircle2 className="size-3.5 shrink-0" />
+            <span>Official company domain recognized (@{emailValidation.domain}). Ready for OTP verification.</span>
+          </p>
+        )}
+
+        {stepErrors["email"] && !emailValidation?.error && (
           <p id="email-error" role="alert" className="text-xs font-medium text-destructive">
             {stepErrors["email"]}
           </p>
@@ -91,16 +145,25 @@ export function ContactVerificationFields({
         )}
       </div>
 
-      {/* Row 2 — Mobile Number */}
+      {/* Row 2 — Aadhaar-Linked Mobile Number */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-            Mobile Number <span className="text-destructive">*</span>
+          <Label htmlFor="phone" className="text-sm font-medium text-foreground flex items-center gap-2">
+            <span>Mobile Number</span>
+            <span className="text-destructive">*</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+              <ShieldCheck className="size-3" />
+              Aadhaar Linked
+            </span>
           </Label>
           {data.isPhoneVerified && (
             <VerificationBadge status={true} label="Verified" size="sm" />
           )}
         </div>
+        <p className="text-xs text-muted-foreground">
+          Must be the 10-digit mobile number linked to your UIDAI Aadhaar card for KYC authentication and OTPs.
+        </p>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex flex-1">
             <div className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-xs text-muted-foreground font-medium select-none h-9.5">
@@ -119,8 +182,18 @@ export function ContactVerificationFields({
               placeholder="98765 43210"
               className="rounded-l-none h-9.5 text-sm"
               disabled={data.isPhoneVerified}
-              aria-invalid={Boolean(stepErrors["phone"] || (stepErrors["isPhoneVerified"] && !data.isPhoneVerified))}
-              aria-describedby={stepErrors["phone"] ? "phone-error" : undefined}
+              aria-invalid={Boolean(
+                stepErrors["phone"] ||
+                  (stepErrors["isPhoneVerified"] && !data.isPhoneVerified) ||
+                  (phoneValidation && !phoneValidation.isValid)
+              )}
+              aria-describedby={
+                stepErrors["phone"]
+                  ? "phone-error"
+                  : phoneValidation && !phoneValidation.isValid
+                  ? "phone-warning"
+                  : undefined
+              }
             />
           </div>
           {data.isPhoneVerified ? (
@@ -138,7 +211,7 @@ export function ContactVerificationFields({
               type="button"
               size="sm"
               onClick={onOpenPhoneOtp}
-              disabled={!data.phone || data.phone.length < 10}
+              disabled={!isPhoneOtpEligible}
               className="h-9.5 px-4 font-medium shrink-0"
             >
               <ShieldCheck className="mr-1.5 size-4" />
@@ -146,7 +219,24 @@ export function ContactVerificationFields({
             </Button>
           )}
         </div>
-        {stepErrors["phone"] && (
+
+        {/* Real-time mobile validation feedback */}
+        {!data.isPhoneVerified && phoneValidation && !phoneValidation.isValid && (
+          <p id="phone-warning" role="alert" className="text-xs font-medium text-destructive flex items-center gap-1.5 pt-0.5">
+            <AlertCircle className="size-3.5 shrink-0" />
+            <span>{phoneValidation.error}</span>
+          </p>
+        )}
+
+        {/* Valid Aadhaar-ready mobile indicator */}
+        {!data.isPhoneVerified && phoneValidation?.isValid && (
+          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
+            <CheckCircle2 className="size-3.5 shrink-0" />
+            <span>Valid 10-digit Indian mobile. Ready for Aadhaar OTP verification.</span>
+          </p>
+        )}
+
+        {stepErrors["phone"] && !phoneValidation?.error && (
           <p id="phone-error" role="alert" className="text-xs font-medium text-destructive">
             {stepErrors["phone"]}
           </p>

@@ -120,7 +120,7 @@ export function ApplicantProfileSummary({
 
         <div>
           <span className="text-muted-foreground block text-[11px] font-medium">
-            Contact Email
+            Company Email
           </span>
           <span className="font-medium text-foreground truncate block">
             {application.contactEmail ||
@@ -131,7 +131,7 @@ export function ApplicantProfileSummary({
 
         <div>
           <span className="text-muted-foreground block text-[11px] font-medium">
-            Contact Phone
+            Aadhaar Mobile
           </span>
           <span className="font-medium text-foreground">
             {application.contactPhone ||

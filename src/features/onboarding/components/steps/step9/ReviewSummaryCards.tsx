@@ -56,14 +56,14 @@ export function ReviewSummaryCards({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <span className="text-muted-foreground block text-[11px]">Work Email</span>
+            <span className="text-muted-foreground block text-[11px]">Official Company Email</span>
             <span className="font-medium text-foreground">{formData.step1.email || "—"}</span>
             <div className="pt-1">
               <VerificationBadge status={formData.step1.isEmailVerified} size="sm" />
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground block text-[11px]">Mobile Number</span>
+            <span className="text-muted-foreground block text-[11px]">Aadhaar-Linked Mobile</span>
             <span className="font-medium text-foreground">
               {formData.step1.phone ? `+91 ${formData.step1.phone}` : "—"}
             </span>

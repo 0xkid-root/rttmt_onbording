@@ -1,12 +1,15 @@
 import { z } from "zod";
 import { BUSINESS_CATEGORIES } from "../mocks/options";
 import { areRequiredKybDocsUploaded } from "../config/kybDocuments";
-import { validateAndNormalizeWebUrl } from "../utils/formatters";
+import {
+  validateAndNormalizeWebUrl,
+  isOfficialCompanyEmail,
+  isValidIndianMobileNumber,
+} from "../utils/formatters";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-const PHONE_REGEX = /^[6-9]\d{9}$/;
 const PINCODE_REGEX = /^[1-9][0-9]{5}$/;
 
 // Document schema
@@ -28,18 +31,31 @@ export const step1AccountSchema = z
     email: z
       .string()
       .trim()
-      .min(1, "Email address is required")
-      .email("Please enter a valid work email address"),
+      .min(1, "Official company email is required")
+      .email("Please enter a valid email address")
+      .refine(
+        (val) => isOfficialCompanyEmail(val).isValid,
+        {
+          message:
+            "Please provide an official company email address (personal webmail domains like @gmail.com or @yahoo.com are not permitted).",
+        }
+      ),
     isEmailVerified: z.boolean().refine((val) => val === true, {
-      message: "Please complete mock OTP verification for your email address",
+      message: "Please complete mock OTP verification for your official company email",
     }),
     phone: z
       .string()
       .trim()
-      .min(1, "Phone number is required")
-      .regex(PHONE_REGEX, "Enter a valid 10-digit Indian mobile number"),
+      .min(1, "Aadhaar-linked mobile number is required")
+      .refine(
+        (val) => isValidIndianMobileNumber(val).isValid,
+        {
+          message:
+            "Enter a valid 10-digit Aadhaar-linked Indian mobile number (starts with 6-9)",
+        }
+      ),
     isPhoneVerified: z.boolean().refine((val) => val === true, {
-      message: "Please complete mock OTP verification for your mobile number",
+      message: "Please complete mock OTP verification for your Aadhaar-linked mobile number",
     }),
     password: z
       .string()
@@ -318,12 +334,25 @@ export const step5KYCSchema = z
     signatoryEmail: z
       .string()
       .trim()
-      .min(1, "Signatory official email is required")
-      .email("Enter a valid official email address"),
+      .min(1, "Signatory official company email is required")
+      .email("Enter a valid official email address")
+      .refine(
+        (val) => isOfficialCompanyEmail(val).isValid,
+        {
+          message:
+            "Please provide an official company email address (personal webmail domains like @gmail.com or @yahoo.com are not permitted).",
+        }
+      ),
     signatoryPhone: z
       .string()
       .trim()
-      .regex(PHONE_REGEX, "Enter a valid 10-digit Indian mobile number"),
+      .refine(
+        (val) => !val || isValidIndianMobileNumber(val).isValid,
+        {
+          message:
+            "Enter a valid 10-digit Aadhaar-registered Indian mobile number",
+        }
+      ),
     identityProofFiles: z
       .object({
         front: uploadedDocumentSchema.optional(),

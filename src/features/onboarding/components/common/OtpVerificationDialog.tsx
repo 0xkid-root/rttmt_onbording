@@ -94,10 +94,11 @@ export function OtpVerificationDialog({
             <ShieldCheck className="size-6" />
           </div>
           <DialogTitle className="text-lg font-bold text-foreground">
-            Verify {type === "EMAIL" ? "Email Address" : "Mobile Number"}
+            Verify {type === "EMAIL" ? "Official Company Email" : "Aadhaar-Linked Mobile"}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Enter the 6-digit verification code sent to{" "}
+            {type === "EMAIL" ? "your official company email " : "your Aadhaar-registered mobile number "}
             <span className="font-semibold text-foreground">{target}</span>.
           </DialogDescription>
         </DialogHeader>

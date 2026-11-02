@@ -270,3 +270,119 @@ export function formatTimelineTimestamp(timestamp?: string): string {
   return trimmed;
 }
 
+/**
+ * Public, free, and consumer webmail domains that are disallowed for official corporate merchant onboarding.
+ */
+export const DISALLOWED_FREE_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "yahoo.com",
+  "yahoo.co.in",
+  "yahoo.co.uk",
+  "yahoo.in",
+  "hotmail.com",
+  "hotmail.co.uk",
+  "outlook.com",
+  "outlook.in",
+  "live.com",
+  "msn.com",
+  "icloud.com",
+  "me.com",
+  "mac.com",
+  "aol.com",
+  "rediffmail.com",
+  "rediff.com",
+  "zoho.com",
+  "zohomail.com",
+  "protonmail.com",
+  "proton.me",
+  "mail.com",
+  "yandex.com",
+  "gmx.com",
+  "tutanota.com",
+]);
+
+/**
+ * Validates whether an email belongs to an official corporate domain rather than a personal webmail provider.
+ */
+export function isOfficialCompanyEmail(email: string): {
+  isValid: boolean;
+  error?: string;
+  domain?: string;
+} {
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return { isValid: false, error: "Official company email is required." };
+  }
+
+  const clean = email.trim().toLowerCase();
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(clean)) {
+    return { isValid: false, error: "Please enter a valid email address." };
+  }
+
+  const parts = clean.split("@");
+  if (parts.length !== 2) {
+    return { isValid: false, error: "Please enter a valid email address." };
+  }
+
+  const domain = parts[1];
+  if (DISALLOWED_FREE_EMAIL_DOMAINS.has(domain)) {
+    return {
+      isValid: false,
+      domain,
+      error: `Personal email domain (@${domain}) is not permitted. Please use your official corporate or work email.`,
+    };
+  }
+
+  return { isValid: true, domain };
+}
+
+/**
+ * Validates an Indian mobile number suitable for Aadhaar OTP delivery.
+ * Must be a 10-digit number starting with 6, 7, 8, or 9 without dummy repetitive sequences.
+ */
+export function isValidIndianMobileNumber(phone: string): {
+  isValid: boolean;
+  error?: string;
+  normalized?: string;
+} {
+  if (!phone || typeof phone !== "string" || !phone.trim()) {
+    return { isValid: false, error: "Aadhaar-linked mobile number is required." };
+  }
+
+  const digits = phone.replace(/[^0-9]/g, "");
+  let normalized = digits;
+  if (digits.length === 12 && digits.startsWith("91")) {
+    normalized = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith("0")) {
+    normalized = digits.slice(1);
+  }
+
+  if (normalized.length !== 10) {
+    return {
+      isValid: false,
+      error: "Please enter a valid 10-digit mobile number.",
+      normalized,
+    };
+  }
+
+  if (!/^[6-9]\d{9}$/.test(normalized)) {
+    return {
+      isValid: false,
+      error: "Indian mobile number must start with 6, 7, 8, or 9.",
+      normalized,
+    };
+  }
+
+  if (/^(\d)\1{9}$/.test(normalized) || normalized === "1234567890") {
+    return {
+      isValid: false,
+      error: "Please enter a valid, active mobile number.",
+      normalized,
+    };
+  }
+
+  return { isValid: true, normalized };
+}
+
+

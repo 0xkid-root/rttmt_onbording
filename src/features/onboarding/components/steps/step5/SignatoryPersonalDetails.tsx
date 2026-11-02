@@ -84,9 +84,15 @@ export function SignatoryPersonalDetails({
       {/* Official Email & Direct Mobile */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="signatoryEmail">
-            Signatory Official Email <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="signatoryEmail" className="flex items-center gap-1.5 text-xs sm:text-sm font-medium">
+              <span>Signatory Official Email</span>
+              <span className="text-destructive">*</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                Corporate Domain
+              </span>
+            </Label>
+          </div>
           <div className="relative">
             <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
             <Input
@@ -102,6 +108,9 @@ export function SignatoryPersonalDetails({
               }
             />
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Must be an official corporate email (personal webmail not accepted).
+          </p>
           {stepErrors["signatoryEmail"] && (
             <p
               id="signatoryEmail-error"
@@ -114,9 +123,15 @@ export function SignatoryPersonalDetails({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="signatoryPhone">
-            Signatory Direct Mobile <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="signatoryPhone" className="flex items-center gap-1.5 text-xs sm:text-sm font-medium">
+              <span>Signatory Mobile</span>
+              <span className="text-destructive">*</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                Aadhaar Linked
+              </span>
+            </Label>
+          </div>
           <div className="relative">
             <Phone className="absolute left-3 top-2.5 size-4 text-muted-foreground pointer-events-none" />
             <Input
@@ -137,6 +152,9 @@ export function SignatoryPersonalDetails({
               }
             />
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Aadhaar UIDAI OTP will be delivered to this registered mobile number.
+          </p>
           {stepErrors["signatoryPhone"] && (
             <p
               id="signatoryPhone-error"
