@@ -5,7 +5,6 @@ import {
   Link as LinkIcon,
   Mail,
   Phone,
-  ExternalLink,
   Sparkles,
   UserCheck,
 } from "lucide-react";
@@ -19,6 +18,7 @@ import {
   getSafeBaseDomain,
 } from "../../../utils/formatters";
 import { Step8ComplianceData } from "../../../types";
+import { PolicyUrlInput } from "./PolicyUrlInput";
 
 interface PolicyUrlsSectionProps {
   data: Step8ComplianceData;
@@ -59,34 +59,47 @@ export function PolicyUrlsSection({
     if (!validation.isValid) {
       setUrlFieldErrors((prev) => ({
         ...prev,
-        [field]: validation.error || "Please enter a valid HTTP or HTTPS web address.",
+        [field]: validation.error || "Please enter a valid website URL starting with https://",
       }));
-    } else {
-      setUrlFieldErrors((prev) => ({ ...prev, [field]: undefined }));
-      if (validation.normalizedUrl !== trimmed) {
-        updateStepData("step8", { [field]: validation.normalizedUrl });
+      return;
+    }
+
+    // Clear local error & update with normalized URL
+    setUrlFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (validation.normalizedUrl && validation.normalizedUrl !== value) {
+      updateStepData("step8", { [field]: validation.normalizedUrl });
+    }
+
+    // Warn if domain differs substantially from declared business website
+    if (websiteUrl && validation.normalizedUrl) {
+      const siteDomain = getSafeBaseDomain(websiteUrl);
+      const policyDomain = getSafeBaseDomain(validation.normalizedUrl);
+      if (siteDomain && policyDomain && siteDomain !== policyDomain) {
+        toast.warning("Domain Mismatch Notice", {
+          description: `Policy URL (${policyDomain}) uses a different domain than your website (${siteDomain}). Both must be owned by the applicant entity.`,
+        });
       }
     }
   };
 
-  // Safe auto-fill policy URLs using website from Step 2
+  // Helper to suggest standard URL paths based on Step 2 declared business website
   const handleAutoFillDomain = () => {
     if (!websiteUrl || !websiteUrl.trim()) {
-      toast.error("No website URL provided", {
-        description: "Please enter your business website in Step 2 to generate URL suggestions.",
+      toast.info("No website URL declared", {
+        description: "Please declare your business website in Step 2 to generate suggested policy links.",
       });
       return;
     }
 
-    const baseDomain = getSafeBaseDomain(websiteUrl);
-    if (!baseDomain) {
+    const norm = validateAndNormalizeWebUrl(websiteUrl);
+    if (!norm.isValid || !norm.normalizedUrl) {
       toast.error("Invalid website URL in Step 2", {
-        description: "Website URL must use a valid http:// or https:// protocol.",
+        description: "Please ensure your Step 2 website URL is valid before generating suggestions.",
       });
       return;
     }
 
-    // Only suggest into empty fields — never overwrite existing user entries
+    const baseDomain = norm.normalizedUrl.replace(/\/+$/, "");
     const updates: Partial<typeof data> = {};
     let filledCount = 0;
 
@@ -174,151 +187,46 @@ export function PolicyUrlsSection({
       {/* 3 URL Inputs */}
       <div className="grid gap-4 md:grid-cols-3">
         {/* Refund & Cancellation Policy */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="refundPolicyUrl" className="text-xs sm:text-sm">
-              Refund Policy URL <span className="text-destructive">*</span>
-            </Label>
-            {data.refundPolicyUrl &&
-              validateAndNormalizeWebUrl(data.refundPolicyUrl).isValid && (
-                <a
-                  href={validateAndNormalizeWebUrl(data.refundPolicyUrl).normalizedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                  title="Open policy link in new tab"
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
-          </div>
-          <Input
-            id="refundPolicyUrl"
-            type="url"
-            value={data.refundPolicyUrl}
-            onChange={(e) => {
-              setUrlFieldErrors((prev) => ({ ...prev, refundPolicyUrl: undefined }));
-              updateStepData("step8", { refundPolicyUrl: e.target.value });
-            }}
-            onBlur={(e) => handleUrlBlur("refundPolicyUrl", e.target.value)}
-            placeholder="https://brand.com/refunds"
-            aria-invalid={Boolean(
-              stepErrors["refundPolicyUrl"] || urlFieldErrors.refundPolicyUrl
-            )}
-            aria-describedby={
-              stepErrors["refundPolicyUrl"] || urlFieldErrors.refundPolicyUrl
-                ? "refundPolicyUrl-error"
-                : undefined
-            }
-          />
-          {(urlFieldErrors.refundPolicyUrl || stepErrors["refundPolicyUrl"]) && (
-            <p
-              id="refundPolicyUrl-error"
-              role="alert"
-              className="text-xs font-medium text-destructive"
-            >
-              {urlFieldErrors.refundPolicyUrl || stepErrors["refundPolicyUrl"]}
-            </p>
-          )}
-        </div>
+        <PolicyUrlInput
+          id="refundPolicyUrl"
+          label="Refund Policy URL"
+          value={data.refundPolicyUrl}
+          onChange={(val) => {
+            setUrlFieldErrors((prev) => ({ ...prev, refundPolicyUrl: undefined }));
+            updateStepData("step8", { refundPolicyUrl: val });
+          }}
+          onBlur={(val) => handleUrlBlur("refundPolicyUrl", val)}
+          placeholder="https://brand.com/refunds"
+          errorMessage={urlFieldErrors.refundPolicyUrl || stepErrors["refundPolicyUrl"]}
+        />
 
         {/* Terms of Service */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="termsOfServiceUrl" className="text-xs sm:text-sm">
-              Terms of Service URL <span className="text-destructive">*</span>
-            </Label>
-            {data.termsOfServiceUrl &&
-              validateAndNormalizeWebUrl(data.termsOfServiceUrl).isValid && (
-                <a
-                  href={validateAndNormalizeWebUrl(data.termsOfServiceUrl).normalizedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                  title="Open terms link in new tab"
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
-          </div>
-          <Input
-            id="termsOfServiceUrl"
-            type="url"
-            value={data.termsOfServiceUrl}
-            onChange={(e) => {
-              setUrlFieldErrors((prev) => ({ ...prev, termsOfServiceUrl: undefined }));
-              updateStepData("step8", { termsOfServiceUrl: e.target.value });
-            }}
-            onBlur={(e) => handleUrlBlur("termsOfServiceUrl", e.target.value)}
-            placeholder="https://brand.com/terms"
-            aria-invalid={Boolean(
-              stepErrors["termsOfServiceUrl"] || urlFieldErrors.termsOfServiceUrl
-            )}
-            aria-describedby={
-              stepErrors["termsOfServiceUrl"] || urlFieldErrors.termsOfServiceUrl
-                ? "termsOfServiceUrl-error"
-                : undefined
-            }
-          />
-          {(urlFieldErrors.termsOfServiceUrl || stepErrors["termsOfServiceUrl"]) && (
-            <p
-              id="termsOfServiceUrl-error"
-              role="alert"
-              className="text-xs font-medium text-destructive"
-            >
-              {urlFieldErrors.termsOfServiceUrl || stepErrors["termsOfServiceUrl"]}
-            </p>
-          )}
-        </div>
+        <PolicyUrlInput
+          id="termsOfServiceUrl"
+          label="Terms of Service URL"
+          value={data.termsOfServiceUrl}
+          onChange={(val) => {
+            setUrlFieldErrors((prev) => ({ ...prev, termsOfServiceUrl: undefined }));
+            updateStepData("step8", { termsOfServiceUrl: val });
+          }}
+          onBlur={(val) => handleUrlBlur("termsOfServiceUrl", val)}
+          placeholder="https://brand.com/terms"
+          errorMessage={urlFieldErrors.termsOfServiceUrl || stepErrors["termsOfServiceUrl"]}
+        />
 
         {/* Privacy Policy */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="privacyPolicyUrl" className="text-xs sm:text-sm">
-              Privacy Policy URL <span className="text-destructive">*</span>
-            </Label>
-            {data.privacyPolicyUrl &&
-              validateAndNormalizeWebUrl(data.privacyPolicyUrl).isValid && (
-                <a
-                  href={validateAndNormalizeWebUrl(data.privacyPolicyUrl).normalizedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                  title="Open privacy link in new tab"
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-              )}
-          </div>
-          <Input
-            id="privacyPolicyUrl"
-            type="url"
-            value={data.privacyPolicyUrl}
-            onChange={(e) => {
-              setUrlFieldErrors((prev) => ({ ...prev, privacyPolicyUrl: undefined }));
-              updateStepData("step8", { privacyPolicyUrl: e.target.value });
-            }}
-            onBlur={(e) => handleUrlBlur("privacyPolicyUrl", e.target.value)}
-            placeholder="https://brand.com/privacy"
-            aria-invalid={Boolean(
-              stepErrors["privacyPolicyUrl"] || urlFieldErrors.privacyPolicyUrl
-            )}
-            aria-describedby={
-              stepErrors["privacyPolicyUrl"] || urlFieldErrors.privacyPolicyUrl
-                ? "privacyPolicyUrl-error"
-                : undefined
-            }
-          />
-          {(urlFieldErrors.privacyPolicyUrl || stepErrors["privacyPolicyUrl"]) && (
-            <p
-              id="privacyPolicyUrl-error"
-              role="alert"
-              className="text-xs font-medium text-destructive"
-            >
-              {urlFieldErrors.privacyPolicyUrl || stepErrors["privacyPolicyUrl"]}
-            </p>
-          )}
-        </div>
+        <PolicyUrlInput
+          id="privacyPolicyUrl"
+          label="Privacy Policy URL"
+          value={data.privacyPolicyUrl}
+          onChange={(val) => {
+            setUrlFieldErrors((prev) => ({ ...prev, privacyPolicyUrl: undefined }));
+            updateStepData("step8", { privacyPolicyUrl: val });
+          }}
+          onBlur={(val) => handleUrlBlur("privacyPolicyUrl", val)}
+          placeholder="https://brand.com/privacy"
+          errorMessage={urlFieldErrors.privacyPolicyUrl || stepErrors["privacyPolicyUrl"]}
+        />
       </div>
 
       {/* Grievance Contact Section */}
