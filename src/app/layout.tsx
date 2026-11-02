@@ -22,7 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+      <body
+        className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary"
+        suppressHydrationWarning
+      >
         {children}
         <Toaster richColors position="top-right" />
       </body>
