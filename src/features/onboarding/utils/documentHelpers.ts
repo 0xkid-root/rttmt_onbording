@@ -46,3 +46,37 @@ export function createMockUploadedDoc(
     fileUrl: URL.createObjectURL(file),
   };
 }
+
+/**
+ * Revokes a temporary DOM object URL to prevent memory leaks in the browser session.
+ */
+export function revokeDocumentBlobUrl(fileUrl?: string): void {
+  if (
+    typeof URL !== "undefined" &&
+    typeof URL.revokeObjectURL === "function" &&
+    fileUrl &&
+    fileUrl.startsWith("blob:")
+  ) {
+    try {
+      URL.revokeObjectURL(fileUrl);
+    } catch {
+      // Safe fallback if already revoked or invalid
+    }
+  }
+}
+
+/**
+ * Sanitizes an uploaded document for persistent browser storage (e.g. localStorage).
+ * Strips temporary in-memory blob URLs that become invalid once the session expires.
+ */
+export function sanitizeDocumentForStorage(
+  doc?: UploadedDocument
+): UploadedDocument | undefined {
+  if (!doc) return undefined;
+  const { fileUrl, ...rest } = doc;
+  return {
+    ...rest,
+    fileUrl: fileUrl && !fileUrl.startsWith("blob:") ? fileUrl : undefined,
+  };
+}
+

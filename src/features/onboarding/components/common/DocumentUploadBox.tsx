@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   UploadCloud,
   FileText,
@@ -14,7 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { UploadedDocument } from "../../types";
-import { validateUploadedFile, createMockUploadedDoc } from "../../utils/documentHelpers";
+import {
+  validateUploadedFile,
+  createMockUploadedDoc,
+  revokeDocumentBlobUrl,
+} from "../../utils/documentHelpers";
 import { formatFileSize } from "../../utils/formatters";
 
 interface DocumentUploadBoxProps {
@@ -45,6 +49,18 @@ export function DocumentUploadBox({
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
 
+  // Accessible keyboard dismissal for preview modal
+  useEffect(() => {
+    if (!showPreviewModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowPreviewModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showPreviewModal]);
+
   const handleFileProcess = (file: File) => {
     setUploadError(null);
     const validation = validateUploadedFile(file);
@@ -63,6 +79,10 @@ export function DocumentUploadBox({
         if (prev >= 95) {
           clearInterval(interval);
           setTimeout(() => {
+            // Revoke any prior uploaded document blob URL before replacing
+            if (document?.fileUrl) {
+              revokeDocumentBlobUrl(document.fileUrl);
+            }
             const uploadedDoc = createMockUploadedDoc(file, documentType);
             onDocumentChange(uploadedDoc);
             setIsUploading(false);
@@ -92,6 +112,9 @@ export function DocumentUploadBox({
   };
 
   const handleRemove = () => {
+    if (document?.fileUrl) {
+      revokeDocumentBlobUrl(document.fileUrl);
+    }
     onDocumentChange(undefined);
     setUploadProgress(0);
     setUploadError(null);
@@ -279,6 +302,9 @@ export function DocumentUploadBox({
           onClick={() => setShowPreviewModal(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Document preview for ${document.name}`}
             className="relative max-h-[90vh] max-w-3xl overflow-hidden rounded-lg bg-card border border-border p-4 shadow-xl space-y-3"
             onClick={(e) => e.stopPropagation()}
           >

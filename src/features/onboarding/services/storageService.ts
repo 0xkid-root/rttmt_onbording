@@ -7,6 +7,7 @@ import {
   FatcaCrsClassification,
 } from "../types";
 import { DEFAULT_ONBOARDING_FORM_DATA } from "../mocks/initialData";
+import { sanitizeDocumentForStorage } from "../utils/documentHelpers";
 
 const DRAFT_STORAGE_KEY = "rttmt_onboarding_draft_v1";
 const LEGACY_DRAFT_STORAGE_KEY = "rtmt_onboarding_draft_v1";
@@ -22,6 +23,7 @@ interface StoredDraftPayload {
 /**
  * Sanitizes sensitive fields before persisting to browser local storage.
  * Passwords, unmasked identity numbers, and raw credentials are NEVER saved to local storage.
+ * In-memory temporary blob URLs from documents are cleared since they expire across session reloads.
  */
 function sanitizeForStorage(data: OnboardingFormData): OnboardingFormData {
   const cloned: OnboardingFormData = JSON.parse(JSON.stringify(data));
@@ -29,6 +31,49 @@ function sanitizeForStorage(data: OnboardingFormData): OnboardingFormData {
   // Purge passwords
   cloned.step1.password = "";
   cloned.step1.confirmPassword = "";
+
+  // Strip temporary in-memory blob URLs from documents
+  if (cloned.step5) {
+    if (cloned.step5.panCardDocument) {
+      cloned.step5.panCardDocument = sanitizeDocumentForStorage(cloned.step5.panCardDocument);
+    }
+    if (cloned.step5.identityProofDocument) {
+      cloned.step5.identityProofDocument = sanitizeDocumentForStorage(cloned.step5.identityProofDocument);
+    }
+    if (cloned.step5.addressProofDocument) {
+      cloned.step5.addressProofDocument = sanitizeDocumentForStorage(cloned.step5.addressProofDocument);
+    }
+    if (cloned.step5.identityProofFiles) {
+      cloned.step5.identityProofFiles = {
+        front: sanitizeDocumentForStorage(cloned.step5.identityProofFiles.front),
+        back: sanitizeDocumentForStorage(cloned.step5.identityProofFiles.back),
+      };
+    }
+    if (cloned.step5.addressProofFiles) {
+      cloned.step5.addressProofFiles = {
+        front: sanitizeDocumentForStorage(cloned.step5.addressProofFiles.front),
+        back: sanitizeDocumentForStorage(cloned.step5.addressProofFiles.back),
+      };
+    }
+  }
+
+  if (cloned.step6) {
+    if (cloned.step6.businessRegistrationDoc) {
+      cloned.step6.businessRegistrationDoc = sanitizeDocumentForStorage(cloned.step6.businessRegistrationDoc);
+    }
+    if (cloned.step6.constitutionalDoc) {
+      cloned.step6.constitutionalDoc = sanitizeDocumentForStorage(cloned.step6.constitutionalDoc);
+    }
+    if (cloned.step6.boardResolutionDoc) {
+      cloned.step6.boardResolutionDoc = sanitizeDocumentForStorage(cloned.step6.boardResolutionDoc);
+    }
+    if (cloned.step6.companyPanDoc) {
+      cloned.step6.companyPanDoc = sanitizeDocumentForStorage(cloned.step6.companyPanDoc);
+    }
+    if (cloned.step6.gstCertificateDoc) {
+      cloned.step6.gstCertificateDoc = sanitizeDocumentForStorage(cloned.step6.gstCertificateDoc);
+    }
+  }
 
   return cloned;
 }
@@ -114,7 +159,7 @@ export function loadDraftFromStorage(): {
     };
 
     return {
-      formData: merged,
+      formData: sanitizeForStorage(merged),
       currentStep: parsed.currentStep || 1,
     };
   } catch (err) {
