@@ -33,8 +33,10 @@ export function StatutoryDeclarationsSection({
             authorized representative.
           </p>
         </div>
-        <span className="text-[10px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded border border-border/70 self-start sm:self-auto">
-          Compliance Review Pending
+        <span className="text-[10px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded border border-border/70 self-start sm:self-auto font-mono">
+          {data.consentTimestamp
+            ? `Policy: ${data.complianceVersion || "v2.4-2026"} • Timestamped`
+            : "Compliance Version: v2.4-2026"}
         </span>
       </div>
 
@@ -43,7 +45,11 @@ export function StatutoryDeclarationsSection({
         <RestrictedBusinessDeclaration
           checked={data.restrictedBusinessDeclaration}
           onCheckedChange={(checked) =>
-            updateStepData("step8", { restrictedBusinessDeclaration: checked })
+            updateStepData("step8", {
+              restrictedBusinessDeclaration: checked,
+              complianceVersion: "v2.4-2026",
+              consentTimestamp: new Date().toISOString(),
+            })
           }
           error={stepErrors["restrictedBusinessDeclaration"]}
         />
@@ -78,7 +84,11 @@ export function StatutoryDeclarationsSection({
         <TransactionMonitoringConsent
           checked={data.transactionMonitoringConsent}
           onCheckedChange={(checked) =>
-            updateStepData("step8", { transactionMonitoringConsent: checked })
+            updateStepData("step8", {
+              transactionMonitoringConsent: checked,
+              complianceVersion: "v2.4-2026",
+              consentTimestamp: new Date().toISOString(),
+            })
           }
           error={stepErrors["transactionMonitoringConsent"]}
         />

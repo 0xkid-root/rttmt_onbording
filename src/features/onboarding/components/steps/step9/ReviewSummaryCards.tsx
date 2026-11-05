@@ -63,7 +63,7 @@ export function ReviewSummaryCards({
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground block text-[11px]">Aadhaar-Linked Mobile</span>
+            <span className="text-muted-foreground block text-[11px]">Primary Contact Mobile</span>
             <span className="font-medium text-foreground">
               {formData.step1.phone ? `+91 ${formData.step1.phone}` : "—"}
             </span>
@@ -190,6 +190,18 @@ export function ReviewSummaryCards({
           <div>
             <span className="text-muted-foreground block text-[11px]">Constitution</span>
             <span className="font-medium text-foreground">{formData.step3.entityType}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block text-[11px]">
+              {["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(formData.step3.entityType)
+                ? "CIN"
+                : formData.step3.entityType === "LLP"
+                ? "LLPIN"
+                : "Reg. Identifier"}
+            </span>
+            <span className="font-mono font-medium text-foreground">
+              {formData.step3.registrationNumber || "Not Applicable"}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground block text-[11px]">Entity PAN</span>
@@ -391,6 +403,12 @@ export function ReviewSummaryCards({
             <span className="text-muted-foreground block text-[11px]">Grievance Contact</span>
             <span className="font-medium text-foreground">
               {formData.step8.grievanceEmail || "—"}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block text-[11px]">Compliance Audit</span>
+            <span className="font-medium text-foreground">
+              {formData.step8.complianceVersion || "v2.4-2026"} (Signed)
             </span>
           </div>
           <div className="sm:col-span-2">

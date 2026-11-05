@@ -152,7 +152,7 @@ export function ContactVerificationFields({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Aadhaar-linked mobile number for KYC OTP
+          Primary mobile number for account authentication and OTP alerts
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 pt-0.5">
