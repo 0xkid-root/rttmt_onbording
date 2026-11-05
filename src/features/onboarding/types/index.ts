@@ -126,7 +126,8 @@ export interface Step5KYCData {
   addressDocumentType?: AddressDocumentType;
   addressProofFiles?: DocumentSideFiles;
 
-  // Backward-compatible single document references
+  // Signatory document references
+  panCardDocument?: UploadedDocument;
   identityProofDocument?: UploadedDocument;
   addressProofDocument?: UploadedDocument;
 

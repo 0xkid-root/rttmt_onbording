@@ -60,6 +60,8 @@ export function useSignatoryKyc({
     data.addressProofFiles?.front?.id || data.addressProofDocument?.id
   );
 
+  const isPanDocUploaded = Boolean(data.panCardDocument?.id);
+
   // General field change handler for non-identity fields
   const handleFieldChange = (updates: Partial<Step5KYCData>) => {
     updateStepData("step5", updates);
@@ -99,6 +101,26 @@ export function useSignatoryKyc({
     });
   };
 
+  // Personal PAN card copy upload handler
+  const handlePanFileChange = (doc?: UploadedDocument) => {
+    const isIdUploadsDone = AADHAAR_SLOTS.every((s) =>
+      Boolean(
+        data.identityProofFiles?.[s.id]?.id ||
+          (s.id === "front" && data.identityProofDocument?.id)
+      )
+    );
+    const isAddrUploadsDone = Boolean(
+      data.addressProofFiles?.front?.id || data.addressProofDocument?.id
+    );
+    const isPanDocDone = Boolean(doc?.id);
+    const bothVerified = Boolean(data.isPanVerified && data.isIdVerified);
+
+    updateStepData("step5", {
+      panCardDocument: doc || undefined,
+      isKycVerified: bothVerified && isIdUploadsDone && isAddrUploadsDone && isPanDocDone,
+    });
+  };
+
   // Identity proof file upload handler for specific side (front or back of Aadhaar)
   const handleIdentityFileChange = (
     slotId: "front" | "back",
@@ -123,12 +145,13 @@ export function useSignatoryKyc({
     const isAddrUploadsDone = Boolean(
       data.addressProofFiles?.front?.id || data.addressProofDocument?.id
     );
+    const isPanDocDone = Boolean(data.panCardDocument?.id);
     const bothVerified = Boolean(data.isPanVerified && data.isIdVerified);
 
     updateStepData("step5", {
       identityProofFiles: currentFiles,
       identityProofDocument: primaryDoc,
-      isKycVerified: bothVerified && isIdUploadsDone && isAddrUploadsDone,
+      isKycVerified: bothVerified && isIdUploadsDone && isAddrUploadsDone && isPanDocDone,
     });
   };
 
@@ -148,13 +171,14 @@ export function useSignatoryKyc({
       )
     );
     const isAddrUploadsDone = Boolean(doc?.id);
+    const isPanDocDone = Boolean(data.panCardDocument?.id);
     const bothVerified = Boolean(data.isPanVerified && data.isIdVerified);
 
     updateStepData("step5", {
       addressDocumentType: "UTILITY_BILL",
       addressProofFiles: currentFiles,
       addressProofDocument: doc || undefined,
-      isKycVerified: bothVerified && isIdUploadsDone && isAddrUploadsDone,
+      isKycVerified: bothVerified && isIdUploadsDone && isAddrUploadsDone && isPanDocDone,
     });
   };
 
@@ -195,11 +219,13 @@ export function useSignatoryKyc({
           data.addressProofFiles?.front?.id || data.addressProofDocument?.id
         );
 
+        const isPanDocDone = Boolean(data.panCardDocument?.id);
+
         updateStepData("step5", {
           isPanVerified: true,
           panVerifiedName: result.registeredName || data.signatoryName,
           panVerificationStatus: "VERIFIED",
-          isKycVerified: isBothVerified && isIdUploadsDone && isAddrUploadsDone,
+          isKycVerified: isBothVerified && isIdUploadsDone && isAddrUploadsDone && isPanDocDone,
         });
 
         setPanFeedback(
@@ -270,12 +296,13 @@ export function useSignatoryKyc({
         const isAddrUploadsDone = Boolean(
           data.addressProofFiles?.front?.id || data.addressProofDocument?.id
         );
+        const isPanDocDone = Boolean(data.panCardDocument?.id);
 
         updateStepData("step5", {
           idDocumentType: "AADHAAR",
           isIdVerified: true,
           idVerificationStatus: "VERIFIED",
-          isKycVerified: isBothVerified && isIdUploadsDone && isAddrUploadsDone,
+          isKycVerified: isBothVerified && isIdUploadsDone && isAddrUploadsDone && isPanDocDone,
         });
 
         setAadhaarFeedback(result.notes || "Simulated Aadhaar verification passed.");
@@ -320,9 +347,11 @@ export function useSignatoryKyc({
     identityUploadedCount,
     isIdentityUploadsComplete,
     isAddressUploadsComplete,
+    isPanDocUploaded,
     handleFieldChange,
     handlePanChange,
     handleAadhaarChange,
+    handlePanFileChange,
     handleIdentityFileChange,
     handleAddressFileChange,
     handleVerifyPan,

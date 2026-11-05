@@ -20,9 +20,11 @@ export function Step5KYC() {
     identityUploadedCount,
     isIdentityUploadsComplete,
     isAddressUploadsComplete,
+    isPanDocUploaded,
     handleFieldChange,
     handlePanChange,
     handleAadhaarChange,
+    handlePanFileChange,
     handleIdentityFileChange,
     handleAddressFileChange,
     handleVerifyPan,
@@ -150,9 +152,11 @@ export function Step5KYC() {
         {/* Dynamic KYC Document Uploads Section */}
         <SignatoryDocumentUploads
           data={data}
+          isPanDocUploaded={isPanDocUploaded}
           isIdentityUploadsComplete={isIdentityUploadsComplete}
           identityUploadedCount={identityUploadedCount}
           isAddressUploadsComplete={isAddressUploadsComplete}
+          onPanFileChange={handlePanFileChange}
           onIdentityFileChange={handleIdentityFileChange}
           onAddressFileChange={handleAddressFileChange}
           stepErrors={stepErrors}

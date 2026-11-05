@@ -283,6 +283,12 @@ export function ReviewSummaryCards({
             <VerificationBadge status={formData.step5.isKycVerified} size="sm" />
           </div>
           <div>
+            <span className="text-muted-foreground block text-[11px]">Signatory PAN Copy</span>
+            <span className="font-medium text-foreground truncate block">
+              {formData.step5.panCardDocument?.name || "Uploaded"}
+            </span>
+          </div>
+          <div>
             <span className="text-muted-foreground block text-[11px]">Corporate KYB Status</span>
             <VerificationBadge status={formData.step6.isKybVerified} size="sm" />
           </div>

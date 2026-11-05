@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { IdCard, FileCheck, MapPin, CheckCircle2 } from "lucide-react";
+import { IdCard, CheckCircle2 } from "lucide-react";
 import { DocumentUploadBox } from "../../common/DocumentUploadBox";
 import { Step5KYCData, UploadedDocument } from "../../../types";
 
@@ -20,9 +20,11 @@ export const AADHAAR_SLOTS = [
 
 interface SignatoryDocumentUploadsProps {
   data: Step5KYCData;
+  isPanDocUploaded: boolean;
   isIdentityUploadsComplete: boolean;
   identityUploadedCount: number;
   isAddressUploadsComplete: boolean;
+  onPanFileChange: (doc?: UploadedDocument) => void;
   onIdentityFileChange: (slotId: "front" | "back", doc?: UploadedDocument) => void;
   onAddressFileChange: (doc?: UploadedDocument) => void;
   stepErrors: Record<string, string>;
@@ -30,120 +32,103 @@ interface SignatoryDocumentUploadsProps {
 
 export function SignatoryDocumentUploads({
   data,
-  isIdentityUploadsComplete,
+  isPanDocUploaded,
   identityUploadedCount,
   isAddressUploadsComplete,
+  onPanFileChange,
   onIdentityFileChange,
   onAddressFileChange,
   stepErrors,
 }: SignatoryDocumentUploadsProps) {
+  const totalUploaded =
+    identityUploadedCount +
+    (isPanDocUploaded ? 1 : 0) +
+    (isAddressUploadsComplete ? 1 : 0);
+  const isAllComplete = totalUploaded === 4;
+
   return (
-    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-6">
-      <div>
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <IdCard className="size-4 text-primary" />
-          Signatory KYC Document Uploads
-        </h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          Upload clear, readable copies of valid identity and residential address
-          documents. PDF, PNG, JPG, or WEBP up to 5MB.
-        </p>
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-5">
+      {/* Unified Section Header with Progress Badge */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+            <IdCard className="size-4 text-primary" />
+            Signatory KYC Document Uploads
+          </h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Upload clear copies of identity, tax, and residential address documents. PDF, PNG, JPG, or WEBP up to 5MB.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {isAllComplete ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
+              <CheckCircle2 className="size-3" />
+              All Documents Uploaded
+            </span>
+          ) : (
+            <span className="text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0">
+              {totalUploaded} of 4 uploaded
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Card 1: Identity Proof Document Section (Aadhaar Card only) */}
-        <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-4">
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
-            <div className="flex items-center gap-2">
-              <FileCheck className="size-4 text-primary" />
-              <h4 className="text-sm font-semibold text-foreground">
-                Identity Proof (Aadhaar Card) <span className="text-destructive">*</span>
-              </h4>
-            </div>
+      {/* Balanced 2x2 Document Upload Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 items-stretch">
+        {/* Slot 1: Aadhaar Card Front */}
+        <DocumentUploadBox
+          label="Aadhaar Card Front"
+          sideBadge="Front Side"
+          required
+          documentType="AADHAAR_FRONT"
+          document={
+            data.identityProofFiles?.front || data.identityProofDocument
+          }
+          onDocumentChange={(doc) => onIdentityFileChange("front", doc)}
+          error={
+            stepErrors["identityProof_front"] ||
+            stepErrors["identityProofDocument"]
+          }
+        />
 
-            <div className="flex items-center gap-2 shrink-0">
-              {isIdentityUploadsComplete ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
-                  <CheckCircle2 className="size-3" />
-                  Complete
-                </span>
-              ) : (
-                <span className="text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0">
-                  {identityUploadedCount} of {AADHAAR_SLOTS.length} uploaded
-                </span>
-              )}
-            </div>
-          </div>
+        {/* Slot 2: Aadhaar Card Back */}
+        <DocumentUploadBox
+          label="Aadhaar Card Back"
+          sideBadge="Back Side"
+          required
+          documentType="AADHAAR_BACK"
+          document={data.identityProofFiles?.back}
+          onDocumentChange={(doc) => onIdentityFileChange("back", doc)}
+          error={stepErrors["identityProof_back"]}
+        />
 
-          {/* Aadhaar Upload Slots: Front & Back */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {AADHAAR_SLOTS.map((slot) => {
-              const currentDoc =
-                data.identityProofFiles?.[slot.id] ||
-                (slot.id === "front" ? data.identityProofDocument : undefined);
-              const slotError =
-                stepErrors[`identityProof_${slot.id}`] ||
-                (slot.id === "front" ? stepErrors["identityProofDocument"] : undefined);
+        {/* Slot 3: Signatory Personal PAN Card */}
+        <DocumentUploadBox
+          label="Signatory PAN Card (Front Copy)"
+          sideBadge="Mandatory"
+          required
+          documentType="PERSONAL_PAN"
+          document={data.panCardDocument}
+          onDocumentChange={onPanFileChange}
+          error={stepErrors["panCardDocument"]}
+        />
 
-              return (
-                <DocumentUploadBox
-                  key={`identity-aadhaar-${slot.id}`}
-                  label={slot.label}
-                  sideBadge={slot.sideBadge}
-                  required
-                  documentType={`AADHAAR_${slot.id.toUpperCase()}`}
-                  document={currentDoc}
-                  onDocumentChange={(doc) => onIdentityFileChange(slot.id, doc)}
-                  error={slotError}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card 2: Address Proof Document Section (Electricity / Utility Bill only) */}
-        <div className="rounded-lg border border-border/80 bg-background/50 p-4 space-y-4">
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
-            <div className="flex items-center gap-2">
-              <MapPin className="size-4 text-primary" />
-              <h4 className="text-sm font-semibold text-foreground">
-                Address Proof (Electricity / Utility Bill){" "}
-                <span className="text-destructive">*</span>
-              </h4>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {isAddressUploadsComplete ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
-                  <CheckCircle2 className="size-3" />
-                  Complete
-                </span>
-              ) : (
-                <span className="text-[11px] text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0">
-                  0 of 1 uploaded
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Single Utility Bill Upload Slot */}
-          <div className="grid gap-4 sm:grid-cols-1">
-            <DocumentUploadBox
-              label="Electricity / Utility Bill"
-              sideBadge="Latest Bill"
-              required
-              documentType="UTILITY_BILL"
-              document={
-                data.addressProofFiles?.front || data.addressProofDocument
-              }
-              onDocumentChange={onAddressFileChange}
-              error={
-                stepErrors["addressProof_front"] ||
-                stepErrors["addressProofDocument"]
-              }
-            />
-          </div>
-        </div>
+        {/* Slot 4: Address Proof (Electricity / Utility Bill) */}
+        <DocumentUploadBox
+          label="Address Proof (Electricity / Utility Bill)"
+          sideBadge="Latest Bill"
+          required
+          documentType="UTILITY_BILL"
+          document={
+            data.addressProofFiles?.front || data.addressProofDocument
+          }
+          onDocumentChange={onAddressFileChange}
+          error={
+            stepErrors["addressProof_front"] ||
+            stepErrors["addressProofDocument"]
+          }
+        />
       </div>
     </div>
   );

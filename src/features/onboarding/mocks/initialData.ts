@@ -66,6 +66,7 @@ export const DEFAULT_ONBOARDING_FORM_DATA: OnboardingFormData = {
     identityProofFiles: {},
     addressDocumentType: "UTILITY_BILL",
     addressProofFiles: {},
+    panCardDocument: undefined,
     isKycVerified: false,
   },
   step6: {
@@ -203,6 +204,15 @@ export const SAMPLE_DEMO_FORM_DATA: OnboardingFormData = {
         status: "PENDING",
         documentType: "UTILITY_BILL",
       },
+    },
+    panCardDocument: {
+      id: "doc-personal-pan-1",
+      name: "Aditya_Personal_PAN.pdf",
+      size: 1150000,
+      type: "application/pdf",
+      uploadedAt: "2026-10-17T09:59:00Z",
+      status: "PENDING",
+      documentType: "PERSONAL_PAN",
     },
     identityProofDocument: {
       id: "doc-aadhaar-front-1",

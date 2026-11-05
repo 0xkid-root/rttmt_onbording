@@ -366,6 +366,7 @@ export const step5KYCSchema = z
         back: uploadedDocumentSchema.optional(),
       })
       .optional(),
+    panCardDocument: uploadedDocumentSchema.optional(),
     identityProofDocument: uploadedDocumentSchema.optional(),
     addressProofDocument: uploadedDocumentSchema.optional(),
     isKycVerified: z.boolean().refine((val) => val === true, {
@@ -497,6 +498,15 @@ export const step5KYCSchema = z
         code: z.ZodIssueCode.custom,
         path: ["addressProof_front"],
         message: "Electricity or utility bill document upload is required",
+      });
+    }
+
+    // 4. Signatory PAN Card Document Upload validation
+    if (!data.panCardDocument?.id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["panCardDocument"],
+        message: "Signatory PAN Card copy upload is required",
       });
     }
   });
