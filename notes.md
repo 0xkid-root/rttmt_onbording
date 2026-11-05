@@ -22,5 +22,16 @@ this api return data in company details , director details ,
 
 6 month  bank statement  feratures i need  in onborading side
 
+busines category side other option 
+
+Merchant Category Code (MCC)
+
+
+Legal Entity Identifier (LEI)
+
+br is not be older then 3 months
+
+pep not submited direct redirect to the the pep page 
+
 
 
