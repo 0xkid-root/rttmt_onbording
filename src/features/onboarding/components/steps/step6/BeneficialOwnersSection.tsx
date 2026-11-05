@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatPan } from "../../../utils/formatters";
-import { BeneficialOwner } from "../../../types";
+import { BeneficialOwner, CompanyDirectorRecord } from "../../../types";
 import { EntityKybConfig } from "../../../config/kybDocuments";
 
 interface BeneficialOwnersSectionProps {
@@ -16,6 +16,8 @@ interface BeneficialOwnersSectionProps {
   hasNoUboDeclaration?: boolean;
   totalUboHolding: number;
   signatoryName?: string;
+  retrievedDirectors?: CompanyDirectorRecord[];
+  onImportDirector?: (director: CompanyDirectorRecord) => void;
   onAddOwner: () => void;
   onRemoveOwner: (ownerId: string) => void;
   onOwnerFieldChange: (
@@ -33,6 +35,8 @@ export function BeneficialOwnersSection({
   hasNoUboDeclaration = false,
   totalUboHolding,
   signatoryName,
+  retrievedDirectors,
+  onImportDirector,
   onAddOwner,
   onRemoveOwner,
   onOwnerFieldChange,
@@ -40,6 +44,11 @@ export function BeneficialOwnersSection({
   stepErrors,
 }: BeneficialOwnersSectionProps) {
   const noUboCheckboxId = useId();
+
+  // Filter directors that haven't been added as UBOs yet
+  const availableDirectorsToImport = (retrievedDirectors || []).filter(
+    (dir) => !beneficialOwners.some((o) => o.name.toLowerCase() === dir.name.toLowerCase())
+  );
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-4">
@@ -50,19 +59,46 @@ export function BeneficialOwnersSection({
         </h3>
 
         {entityConfig.isUboApplicable && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onAddOwner}
-            disabled={hasNoUboDeclaration}
-            className="shrink-0 h-8 text-xs self-start sm:self-auto"
-          >
-            <Plus className="mr-1.5 size-3.5" />
-            Add Beneficial Owner
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onAddOwner}
+              disabled={hasNoUboDeclaration}
+              className="shrink-0 h-8 text-xs self-start sm:self-auto"
+            >
+              <Plus className="mr-1.5 size-3.5" />
+              Add Beneficial Owner
+            </Button>
+          </div>
         )}
       </div>
+
+      {/* Quick Import from MCA Registry Directors */}
+      {entityConfig.isUboApplicable && !hasNoUboDeclaration && availableDirectorsToImport.length > 0 && onImportDirector && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1.5">
+          <span className="font-semibold text-foreground block">
+            Add from MCA Registry Verified Directors (No manual DIN entry needed):
+          </span>
+          <div className="flex flex-wrap gap-2 pt-0.5">
+            {availableDirectorsToImport.map((dir, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => onImportDirector(dir)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-xs hover:border-primary hover:text-primary transition-colors text-foreground font-medium"
+              >
+                <Plus className="size-3 text-primary" />
+                <span>{dir.name}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  ({dir.designation || `DIN: ${dir.din}`})
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Sole Proprietorship Notice */}
       {!entityConfig.isUboApplicable ? (

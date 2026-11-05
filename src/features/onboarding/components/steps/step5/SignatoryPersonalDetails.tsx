@@ -5,7 +5,7 @@ import { Mail, Phone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPhoneNumber } from "../../../utils/formatters";
-import { Step5KYCData } from "../../../types";
+import { Step5KYCData, CompanyDirectorRecord } from "../../../types";
 
 interface SignatoryPersonalDetailsProps {
   signatoryName: string;
@@ -13,6 +13,7 @@ interface SignatoryPersonalDetailsProps {
   signatoryEmail: string;
   signatoryPhone: string;
   roleLabel: string;
+  retrievedDirectors?: CompanyDirectorRecord[];
   onFieldChange: (updates: Partial<Step5KYCData>) => void;
   stepErrors: Record<string, string>;
 }
@@ -23,11 +24,41 @@ export function SignatoryPersonalDetails({
   signatoryEmail,
   signatoryPhone,
   roleLabel,
+  retrievedDirectors,
   onFieldChange,
   stepErrors,
 }: SignatoryPersonalDetailsProps) {
   return (
     <>
+      {/* Quick Autofill from MCA Registry Retrieved Directors */}
+      {retrievedDirectors && retrievedDirectors.length > 0 && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1.5">
+          <span className="font-semibold text-foreground block">
+            Select Signatory from Verified MCA Registry Directors:
+          </span>
+          <div className="flex flex-wrap gap-2 pt-0.5">
+            {retrievedDirectors.map((director, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() =>
+                  onFieldChange({
+                    signatoryName: director.name,
+                    designation: director.designation || "Director",
+                  })
+                }
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-background border border-border text-xs hover:border-primary hover:text-primary transition-colors text-foreground font-medium"
+              >
+                <span>{director.name}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  (DIN: {director.din})
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Row 1 — Two columns: Full Legal Name & Designation */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">

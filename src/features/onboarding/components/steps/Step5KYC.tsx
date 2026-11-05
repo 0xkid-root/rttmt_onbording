@@ -115,6 +115,7 @@ export function Step5KYC() {
             signatoryEmail={data.signatoryEmail}
             signatoryPhone={data.signatoryPhone}
             roleLabel={getSignatoryRoleLabel()}
+            retrievedDirectors={formData.step3.retrievedDirectors}
             onFieldChange={handleFieldChange}
             stepErrors={stepErrors}
           />

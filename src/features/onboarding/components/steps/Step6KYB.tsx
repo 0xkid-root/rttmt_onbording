@@ -135,6 +135,22 @@ export function Step6KYB() {
     });
   };
 
+  // Import from verified MCA Registry Directors
+  const handleImportDirector = (director: { name: string; din: string }) => {
+    const newOwner: BeneficialOwner = {
+      id: `ubo_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      name: director.name,
+      pan: "",
+      percentageHolding: entityConfig.uboThresholdPercent,
+      isPep: false,
+    };
+
+    updateStepData("step6", {
+      beneficialOwners: [...(data.beneficialOwners || []), newOwner],
+      hasNoUboDeclaration: false,
+    });
+  };
+
   // UBO Management with stable unique IDs
   const handleAddOwner = () => {
     const newOwner: BeneficialOwner = {
@@ -231,6 +247,8 @@ export function Step6KYB() {
           hasNoUboDeclaration={data.hasNoUboDeclaration}
           totalUboHolding={totalUboHolding}
           signatoryName={formData.step5.signatoryName}
+          retrievedDirectors={formData.step3.retrievedDirectors}
+          onImportDirector={handleImportDirector}
           onAddOwner={handleAddOwner}
           onRemoveOwner={handleRemoveOwner}
           onOwnerFieldChange={handleOwnerFieldChange}
