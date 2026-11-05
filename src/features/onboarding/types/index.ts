@@ -70,6 +70,14 @@ export interface Step2BusinessProfileData {
 }
 
 // Step 3: Company Details
+export interface CompanyDirectorRecord {
+  din: string;
+  name: string;
+  designation: string;
+  appointedDate?: string;
+  isSignatory?: boolean;
+}
+
 export interface Step3CompanyDetailsData {
   legalEntityName: string;
   entityType: BusinessEntityType;
@@ -78,6 +86,10 @@ export interface Step3CompanyDetailsData {
   gstin?: string;
   hasNoGstDeclaration?: boolean;
   registrationNumber?: string; // CIN for Pvt/Public Ltd, LLPIN for LLP, Reg No for others
+  isRegistryVerified?: boolean;
+  registryVerificationStatus?: "NOT_STARTED" | "PENDING" | "VERIFIED" | "FAILED";
+  companyStatus?: string;
+  retrievedDirectors?: CompanyDirectorRecord[];
 }
 
 // Step 4: Business Address
@@ -169,6 +181,7 @@ export interface Step7BankAccountData {
   bankName: string;
   branchName: string;
   isBankVerified: boolean;
+  pennyDropConsent?: boolean;
   bankVerificationDetails?: BankVerificationResult;
 }
 
@@ -206,6 +219,10 @@ export interface Step8ComplianceData {
 
   // Transaction Monitoring Consent (renamed from creditCheckConsent)
   transactionMonitoringConsent: boolean;
+
+  // Verifiable Regulatory Consent Audit Records
+  complianceVersion?: string;
+  consentTimestamp?: string;
 
   // Backward-compatibility alias for legacy draft payloads
   creditCheckConsent?: boolean;

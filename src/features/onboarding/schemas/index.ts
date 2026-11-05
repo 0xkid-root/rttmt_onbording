@@ -170,6 +170,12 @@ export const step3CompanyDetailsSchema = z
     gstin: z.string().trim().toUpperCase().optional(),
     hasNoGstDeclaration: z.boolean().optional(),
     registrationNumber: z.string().trim().optional(),
+    isRegistryVerified: z.boolean().optional(),
+    registryVerificationStatus: z
+      .enum(["NOT_STARTED", "PENDING", "VERIFIED", "FAILED"])
+      .optional(),
+    companyStatus: z.string().optional(),
+    retrievedDirectors: z.array(z.any()).optional(),
   })
   .superRefine((data, ctx) => {
     const isCorporate = ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(data.entityType);
@@ -626,6 +632,7 @@ export const step7BankAccountSchema = z
     accountType: z.enum(["CURRENT", "SAVINGS"]),
     bankName: z.string().trim().min(1, "Bank name is required"),
     branchName: z.string().trim().min(1, "Branch name is required"),
+    pennyDropConsent: z.boolean().optional(),
     isBankVerified: z.boolean().refine((val) => val === true, {
       message: "Please complete simulated bank account verification before proceeding",
     }),
@@ -689,6 +696,8 @@ export const step8ComplianceSchema = z
     transactionMonitoringConsent: z.boolean().refine((val) => val === true, {
       message: "Consent for RTTMT automated transaction monitoring & risk evaluation is required",
     }),
+    complianceVersion: z.string().optional(),
+    consentTimestamp: z.string().optional(),
     creditCheckConsent: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {

@@ -1,4 +1,8 @@
-import { BankVerificationResult } from "../types";
+import {
+  BankVerificationResult,
+  BusinessEntityType,
+  CompanyDirectorRecord,
+} from "../types";
 import { MOCK_IFSC_DIRECTORY, MockIfscRecord } from "../mocks/options";
 
 export async function lookupIfsc(
@@ -278,5 +282,144 @@ export async function simulateKybVerification(
     entityType,
     verifiedAt: new Date().toISOString(),
     notes: `Simulated statutory & charter verification cleared for ${entityType} (${uploadedCount} document(s) verified). (Demo Mode — No live MCA/ROC API configured).`,
+  };
+}
+
+export interface CompanyRegistryLookupResult {
+  verified: boolean;
+  isSimulated: boolean;
+  provider: string;
+  identifier: string;
+  entityType: BusinessEntityType;
+  legalEntityName: string;
+  incorporationDate: string;
+  panNumber: string;
+  companyStatus: "ACTIVE" | "INACTIVE" | "STRIKE_OFF";
+  directors: CompanyDirectorRecord[];
+  notes: string;
+}
+
+/**
+ * Simulated MCA / ROC Registry Verification for CIN and LLPIN
+ * Enterprise Architecture:
+ * 1. Merchant enters CIN (Pvt/Public Ltd) or LLPIN (LLP).
+ * 2. Provider fetches statutory entity records and the verified Director List from MCA.
+ * 3. Merchant reviews returned records without needing to manually re-enter all director DINs.
+ * 4. Signatories and beneficial owners are identified from this list without automatically
+ *    calling redundant DIN Verification on every director.
+ */
+export async function lookupCompanyByCinOrLlpin(
+  identifierRaw: string,
+  entityType: BusinessEntityType,
+  options?: { signal?: AbortSignal }
+): Promise<CompanyRegistryLookupResult | null> {
+  if (options?.signal?.aborted) {
+    throw new DOMException("Aborted", "AbortError");
+  }
+
+  const clean = (identifierRaw || "").trim().toUpperCase();
+  if (!clean) return null;
+
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => resolve(), 800);
+    if (options?.signal) {
+      options.signal.addEventListener("abort", () => {
+        clearTimeout(timer);
+        reject(new DOMException("Aborted", "AbortError"));
+      });
+    }
+  });
+
+  const isCorporate = ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(entityType);
+  const isLlp = entityType === "LLP";
+
+  if (!isCorporate && !isLlp) {
+    return null;
+  }
+
+  if (isCorporate) {
+    // 21-char CIN format check: e.g. U72900MH2021PTC358912 or L...
+    const isValidCin = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i.test(clean);
+    if (!isValidCin && clean.length < 15) {
+      return null;
+    }
+
+    // Extract year from CIN if valid: characters 10-13 (index 9 to 13)
+    let year = "2021";
+    if (clean.length === 21) {
+      const yearPart = clean.substring(9, 13);
+      if (/^\d{4}$/.test(yearPart)) {
+        year = yearPart;
+      }
+    }
+
+    return {
+      verified: true,
+      isSimulated: true,
+      provider: "Ministry of Corporate Affairs (MCA) Registry [Simulated]",
+      identifier: clean,
+      entityType,
+      legalEntityName:
+        clean === "U72900MH2021PTC358912"
+          ? "RTTMT Technologies Private Limited"
+          : "ACME ENTERPRISE TECHNOLOGIES PRIVATE LIMITED",
+      incorporationDate: `${year}-04-14`,
+      panNumber: "AAACA7823K",
+      companyStatus: "ACTIVE",
+      directors: [
+        {
+          din: "08472910",
+          name: "Aditya Vikram Rao",
+          designation: "Managing Director",
+          appointedDate: `${year}-04-14`,
+          isSignatory: true,
+        },
+        {
+          din: "09124855",
+          name: "Priya S. Sharma",
+          designation: "Director",
+          appointedDate: `${year}-06-10`,
+          isSignatory: false,
+        },
+        {
+          din: "07849120",
+          name: "Rajesh K. Mehta",
+          designation: "Independent Director",
+          appointedDate: `${year}-09-01`,
+          isSignatory: false,
+        },
+      ],
+      notes: "MCA Registry records verified. Director list retrieved directly from statutory registry without manual DIN entry.",
+    };
+  }
+
+  // LLPIN format: e.g., AAA-1234 or AAJ-8491
+  return {
+    verified: true,
+    isSimulated: true,
+    provider: "MCA LLP Registry [Simulated]",
+    identifier: clean,
+    entityType: "LLP",
+    legalEntityName: "ACME LOGISTICS & INFOTECH LLP",
+    incorporationDate: "2022-02-18",
+    panNumber: "AAAFA9812M",
+    companyStatus: "ACTIVE",
+    directors: [
+      {
+        din: "08472910",
+        name: "Aditya Vikram Rao",
+        designation: "Designated Partner",
+        appointedDate: "2022-02-18",
+        isSignatory: true,
+      },
+      {
+        din: "09124855",
+        name: "Priya S. Sharma",
+        designation: "Designated Partner",
+        appointedDate: "2022-02-18",
+        isSignatory: false,
+      },
+    ],
+    notes: "LLP statutory record confirmed. Designated partners loaded from official registry.",
   };
 }

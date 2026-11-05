@@ -28,6 +28,10 @@ export const DEFAULT_ONBOARDING_FORM_DATA: OnboardingFormData = {
     gstin: "",
     hasNoGstDeclaration: false,
     registrationNumber: "",
+    isRegistryVerified: false,
+    registryVerificationStatus: "NOT_STARTED",
+    companyStatus: undefined,
+    retrievedDirectors: [],
   },
   step4: {
     registeredAddress: {
@@ -94,6 +98,7 @@ export const DEFAULT_ONBOARDING_FORM_DATA: OnboardingFormData = {
     bankName: "",
     branchName: "",
     isBankVerified: false,
+    pennyDropConsent: false,
   },
   step8: {
     refundPolicyUrl: "",
@@ -111,6 +116,8 @@ export const DEFAULT_ONBOARDING_FORM_DATA: OnboardingFormData = {
     fatcaCrsGiinOrTin: "",
     fatcaSelfCertificationConfirmed: false,
     transactionMonitoringConsent: false,
+    complianceVersion: "v2.4-2026",
+    consentTimestamp: undefined,
   },
   step9: {
     declarationAccepted: false,
@@ -147,6 +154,25 @@ export const SAMPLE_DEMO_FORM_DATA: OnboardingFormData = {
     gstin: "27AAACA7823K1Z5",
     hasNoGstDeclaration: false,
     registrationNumber: "U72900MH2021PTC358912",
+    isRegistryVerified: true,
+    registryVerificationStatus: "VERIFIED",
+    companyStatus: "ACTIVE",
+    retrievedDirectors: [
+      {
+        din: "08472910",
+        name: "Aditya Vikram Rao",
+        designation: "Managing Director & CEO",
+        appointedDate: "2021-04-14",
+        isSignatory: true,
+      },
+      {
+        din: "09124855",
+        name: "Priya S. Sharma",
+        designation: "Director & CFO",
+        appointedDate: "2021-06-10",
+        isSignatory: false,
+      },
+    ],
   },
   step4: {
     registeredAddress: {
@@ -312,6 +338,7 @@ export const SAMPLE_DEMO_FORM_DATA: OnboardingFormData = {
     bankName: "HDFC Bank",
     branchName: "Fort Commercial Branch",
     isBankVerified: true,
+    pennyDropConsent: true,
     bankVerificationDetails: {
       isVerified: true,
       isSimulated: true,
@@ -341,6 +368,8 @@ export const SAMPLE_DEMO_FORM_DATA: OnboardingFormData = {
     fatcaCrsGiinOrTin: "",
     fatcaSelfCertificationConfirmed: true,
     transactionMonitoringConsent: true,
+    complianceVersion: "v2.4-2026",
+    consentTimestamp: "2026-10-17T10:20:00Z",
   },
   step9: {
     declarationAccepted: true,

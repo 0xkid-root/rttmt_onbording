@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { FileText } from "lucide-react";
 import { useOnboarding } from "../../hooks/OnboardingContext";
-import { ENTITY_TYPE_OPTIONS } from "../../mocks/options";
 import { Step3CompanyDetailsData } from "../../types";
 import { EntityClassificationSection } from "./step3/EntityClassificationSection";
 import { StatutoryTaxIdentifiersSection } from "./step3/StatutoryTaxIdentifiersSection";
@@ -11,10 +9,6 @@ import { StatutoryTaxIdentifiersSection } from "./step3/StatutoryTaxIdentifiersS
 export function Step3CompanyDetails() {
   const { formData, updateStepData, stepErrors } = useOnboarding();
   const data = formData.step3;
-
-  const currentEntityConfig = ENTITY_TYPE_OPTIONS.find(
-    (e) => e.value === data.entityType
-  );
 
   const isCorporate = ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(data.entityType);
   const isLlp = data.entityType === "LLP";
@@ -55,27 +49,6 @@ export function Step3CompanyDetails() {
           stepErrors={stepErrors}
           isGstinRequired={isGstinRequired}
         />
-
-        {/* Section 3: Required Documents (Informational Checklist) */}
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-xs space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <div className="flex items-center gap-2 font-semibold text-foreground">
-              <FileText className="size-4 text-primary" />
-              <span>Required Documents &mdash; {currentEntityConfig?.label || "Entity"}</span>
-            </div>
-            <span className="text-[11px] text-muted-foreground">
-              Informational overview &bull; Uploads collected in Step 6 (KYB)
-            </span>
-          </div>
-          <ul className="grid gap-2 sm:grid-cols-2 text-muted-foreground pt-1">
-            {currentEntityConfig?.requiredKybDocs.map((doc, idx) => (
-              <li key={idx} className="flex items-center gap-2">
-                <FileText className="size-3.5 text-muted-foreground/70 shrink-0" />
-                <span>{doc}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
     </div>
   );

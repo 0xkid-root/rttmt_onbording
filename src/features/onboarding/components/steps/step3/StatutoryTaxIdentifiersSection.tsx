@@ -32,14 +32,27 @@ export function StatutoryTaxIdentifiersSection({
         {/* PAN */}
         <div className="space-y-1.5">
           <Label htmlFor="panNumber">
-            Business / Entity PAN <span className="text-destructive">*</span>
+            {data.entityType === "SOLE_PROPRIETORSHIP"
+              ? "Proprietor PAN (Personal / Business)"
+              : ["PRIVATE_LIMITED", "PUBLIC_LIMITED"].includes(data.entityType)
+              ? "Company PAN Card"
+              : ["LLP", "PARTNERSHIP"].includes(data.entityType)
+              ? "Firm PAN (Partnership / LLP)"
+              : "Business / Entity PAN"}{" "}
+            <span className="text-destructive">*</span>
           </Label>
           <Input
             id="panNumber"
             maxLength={10}
             value={data.panNumber}
             onChange={(e) => onUpdate({ panNumber: formatPan(e.target.value) })}
-            placeholder="e.g. AAACA7823K"
+            placeholder={
+              data.entityType === "SOLE_PROPRIETORSHIP"
+                ? "e.g. BKNPR4821E"
+                : ["LLP", "PARTNERSHIP"].includes(data.entityType)
+                ? "e.g. AAAFA9812M"
+                : "e.g. AAACA7823K"
+            }
             className="font-mono text-sm tracking-wider uppercase"
             aria-invalid={Boolean(stepErrors["panNumber"])}
             aria-describedby={stepErrors["panNumber"] ? "panNumber-error" : undefined}
